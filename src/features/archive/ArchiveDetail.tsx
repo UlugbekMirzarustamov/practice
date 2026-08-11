@@ -1,9 +1,10 @@
+import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Session } from '../../types/session'
 import { CATEGORIES } from '../../data/prompts'
 import { ieltsPartLabel } from '../../data/ielts'
 import { loadSessions } from '../../lib/storage'
-import { computeGrowthComparison } from '../../lib/growth'
+import { computeGrowthComparison, type GrowthComparison } from '../../lib/growth'
 
 interface ArchiveDetailProps {
   session: Session
@@ -21,7 +22,11 @@ export function ArchiveDetail({ session, onBack }: ArchiveDetailProps) {
   const categoryLabel = session.ieltsPart
     ? `IELTS ${ieltsPartLabel(session.ieltsPart)}`
     : (CATEGORIES.find((c) => c.id === session.category)?.label ?? session.category)
-  const comparison = computeGrowthComparison(loadSessions(), session)
+  const [comparison, setComparison] = useState<GrowthComparison | null>(null)
+
+  useEffect(() => {
+    loadSessions().then((all) => setComparison(computeGrowthComparison(all, session)))
+  }, [session])
 
   return (
     <motion.div

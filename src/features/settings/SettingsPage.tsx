@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import type { Theme } from '../../lib/theme'
 import type { Profile } from '../../lib/profile'
 import { initials } from '../../lib/profile'
-import { clearAllLocalData } from '../../lib/storage'
+import { useAuth } from '../../lib/auth'
 
 interface SettingsPageProps {
   theme: Theme
@@ -14,12 +14,8 @@ interface SettingsPageProps {
 }
 
 export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleSidebarCollapsed, profile }: SettingsPageProps) {
-  const [confirmingClear, setConfirmingClear] = useState(false)
-
-  const handleClear = () => {
-    clearAllLocalData()
-    window.location.reload()
-  }
+  const { signOut } = useAuth()
+  const [confirmingSignOut, setConfirmingSignOut] = useState(false)
 
   return (
     <motion.div
@@ -34,7 +30,7 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
           <SettingsGearIcon />
           Settings
         </h1>
-        <p className="lede">Everything here lives in this browser. There's no account sync yet.</p>
+        <p className="lede">Your sessions, streak, and XP sync to your account across every device.</p>
 
         <div className="settings-card">
           <div className="settings-card-title">Account</div>
@@ -48,7 +44,7 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
               <span className="settings-profile-name">{profile.displayName}</span>
               <span className="settings-profile-handle tabular">@{profile.handle}</span>
             </div>
-            <span className="settings-badge">This device only</span>
+            <span className="settings-badge">Synced</span>
           </div>
           <p className="option-hint">Edit your name, bio, and photo from your Profile page.</p>
         </div>
@@ -89,22 +85,19 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
         </div>
 
         <div className="settings-card settings-card-danger">
-          <div className="settings-card-title">Danger zone</div>
-          <p className="option-hint">
-            Permanently delete every session, your profile, and all preferences stored on this device. This cannot be undone,
-            and there's no server copy to restore from.
-          </p>
-          {!confirmingClear ? (
-            <button type="button" className="text-link give-up" onClick={() => setConfirmingClear(true)}>
-              Clear local data
+          <div className="settings-card-title">Account</div>
+          <p className="option-hint">Sign out of Practice on this device. Your data stays in your account.</p>
+          {!confirmingSignOut ? (
+            <button type="button" className="text-link give-up" onClick={() => setConfirmingSignOut(true)}>
+              Sign out
             </button>
           ) : (
             <div className="give-up-confirm">
-              <span>Really delete everything on this device?</span>
-              <button type="button" className="give-up-yes" onClick={handleClear}>
+              <span>Sign out of this device?</span>
+              <button type="button" className="give-up-yes" onClick={() => signOut()}>
                 Yes
               </button>
-              <button type="button" className="give-up-no" onClick={() => setConfirmingClear(false)}>
+              <button type="button" className="give-up-no" onClick={() => setConfirmingSignOut(false)}>
                 No
               </button>
             </div>
@@ -115,16 +108,16 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
   )
 }
 
+const GEAR_TEETH_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
+
 function SettingsGearIcon() {
   return (
     <svg width="26" height="26" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="2.8" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M10 3v1.8M10 15.2V17M17 10h-1.8M4.8 10H3M15.1 4.9l-1.3 1.3M6.2 13.8l-1.3 1.3M15.1 15.1l-1.3-1.3M6.2 6.2L4.9 4.9"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <circle cx="10" cy="10" r="5.6" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.5" fill="var(--bg-elevated)" />
+      {GEAR_TEETH_ANGLES.map((angle) => (
+        <rect key={angle} x="9" y="1.5" width="2" height="2.3" rx="0.5" fill="currentColor" transform={`rotate(${angle} 10 10)`} />
+      ))}
     </svg>
   )
 }

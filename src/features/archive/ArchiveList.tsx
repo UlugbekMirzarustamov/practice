@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import type { Session, Mode } from '../../types/session'
 import { loadSessions } from '../../lib/storage'
@@ -10,9 +10,13 @@ interface ArchiveListProps {
 type FilterMode = 'all' | Mode
 
 export function ArchiveList({ onSelect }: ArchiveListProps) {
-  const [sessions] = useState<Session[]>(() => loadSessions())
+  const [sessions, setSessions] = useState<Session[]>([])
   const [filter, setFilter] = useState<FilterMode>('all')
   const [query, setQuery] = useState('')
+
+  useEffect(() => {
+    loadSessions().then(setSessions)
+  }, [])
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase()

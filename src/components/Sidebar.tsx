@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import type { Profile } from '../lib/profile'
 import { ProfileMenu } from './ProfileMenu'
 
-export type SidebarDest = 'dashboard' | 'archive' | 'leaderboard' | 'profile' | 'settings'
+export type SidebarDest = 'dashboard' | 'archive' | 'leaderboard' | 'profile' | 'settings' | 'admin'
 
 interface SidebarProps {
   active: SidebarDest
@@ -51,6 +51,17 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
             </button>
           )
         })}
+        {profile.isAdmin && (
+          <button
+            type="button"
+            className={['sidebar-item', active === 'admin' ? 'active' : ''].filter(Boolean).join(' ')}
+            onClick={() => onNavigate('admin')}
+            title={collapsed ? 'Admin' : undefined}
+          >
+            <AdminIcon active={active === 'admin'} />
+            {!collapsed && <span className="sidebar-item-label">Admin</span>}
+          </button>
+        )}
       </nav>
 
       <div className="sidebar-bottom">
@@ -105,15 +116,29 @@ function ProfileIcon({ active }: { active: boolean }) {
   )
 }
 
+const GEAR_TEETH_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
+
 function SettingsIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="2.6" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="5.6" stroke={color} strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="2.1" stroke={color} strokeWidth="1.5" fill="var(--bg-elevated)" />
+      {GEAR_TEETH_ANGLES.map((angle) => (
+        <rect key={angle} x="9" y="1.5" width="2" height="2.3" rx="0.5" fill={color} transform={`rotate(${angle} 10 10)`} />
+      ))}
+    </svg>
+  )
+}
+
+function AdminIcon({ active }: { active: boolean }) {
+  return (
+    <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
       <path
-        d="M10 3.5v1.6M10 14.9v1.6M16.5 10h-1.6M5.1 10H3.5M14.6 5.4l-1.1 1.1M6.5 13.5l-1.1 1.1M14.6 14.6l-1.1-1.1M6.5 6.5L5.4 5.4"
+        d="M10 2.5l6 2.2v4.6c0 4-2.6 7-6 8.2-3.4-1.2-6-4.2-6-8.2V4.7l6-2.2z"
         stroke={active ? 'var(--accent)' : 'currentColor'}
         strokeWidth="1.5"
-        strokeLinecap="round"
+        strokeLinejoin="round"
       />
     </svg>
   )

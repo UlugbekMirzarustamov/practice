@@ -1,103 +1,63 @@
-const STORAGE_KEY = 'practice.profile'
+import { supabase } from './supabaseClient'
 
 export interface Profile {
+  id: string
   handle: string
   displayName: string
   avatarDataUrl?: string
   bio: string
   memberSince: string
+  isAdmin: boolean
 }
 
-const ADJECTIVES = [
-  'quiet',
-  'bold',
-  'swift',
-  'calm',
-  'bright',
-  'curious',
-  'steady',
-  'vivid',
-  'lucid',
-  'sharp',
-  'gentle',
-  'fierce',
-  'nimble',
-  'warm',
-  'keen',
-  'dusty',
-  'amber',
-  'wandering',
-  'quiet',
-  'stubborn',
-]
-
-const NOUNS = [
-  'fox',
-  'oak',
-  'wren',
-  'comet',
-  'ember',
-  'harbor',
-  'maple',
-  'otter',
-  'ridge',
-  'sparrow',
-  'willow',
-  'falcon',
-  'coral',
-  'lantern',
-  'meadow',
-  'heron',
-  'pine',
-  'tide',
-  'canyon',
-  'juniper',
-]
-
-function generateHandle(): string {
-  const adj = ADJECTIVES[Math.floor(Math.random() * ADJECTIVES.length)]
-  const noun = NOUNS[Math.floor(Math.random() * NOUNS.length)]
-  const num = Math.floor(1000 + Math.random() * 9000)
-  return `${adj}_${noun}_${num}`
+interface ProfileRow {
+  id: string
+  handle: string
+  display_name: string
+  bio: string
+  avatar_url: string | null
+  is_admin: boolean
+  member_since: string
 }
 
-function createDefaultProfile(): Profile {
-  const handle = generateHandle()
+function rowToProfile(row: ProfileRow): Profile {
   return {
-    handle,
-    displayName: handle,
-    bio: '',
-    memberSince: new Date().toISOString(),
+    id: row.id,
+    handle: row.handle,
+    displayName: row.display_name,
+    avatarDataUrl: row.avatar_url ?? undefined,
+    bio: row.bio,
+    memberSince: row.member_since,
+    isAdmin: row.is_admin,
   }
 }
 
-export function loadProfile(): Profile {
-  const raw = localStorage.getItem(STORAGE_KEY)
-  if (!raw) {
-    const profile = createDefaultProfile()
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
-    return profile
-  }
-  try {
-    const parsed = JSON.parse(raw)
-    if (parsed && typeof parsed.handle === 'string') return parsed as Profile
-  } catch {
-    // fall through
-  }
-  const profile = createDefaultProfile()
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
-  return profile
+export async function loadProfile(): Promise<Profile> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not signed in')
+  const { data, error } = await supabase.from('profiles').select('*').eq('id', user.id).single()
+  if (error) throw error
+  return rowToProfile(data as ProfileRow)
 }
 
-export function saveProfile(profile: Profile): void {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(profile))
-}
+export async function updateProfile(
+  patch: Partial<Pick<Profile, 'displayName' | 'bio' | 'avatarDataUrl'>>,
+): Promise<Profile> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not signed in')
 
-export function updateProfile(patch: Partial<Profile>): Profile {
-  const current = loadProfile()
-  const next = { ...current, ...patch }
-  saveProfile(next)
-  return next
+  const dbPatch: Record<string, unknown> = {}
+  if (patch.displayName !== undefined) dbPatch.display_name = patch.displayName
+  if (patch.bio !== undefined) dbPatch.bio = patch.bio
+  if (patch.avatarDataUrl !== undefined) dbPatch.avatar_url = patch.avatarDataUrl
+
+  const { data, error } = await supabase.from('profiles').update(dbPatch).eq('id', user.id).select().single()
+  if (error) throw error
+  return rowToProfile(data as ProfileRow)
 }
 
 export function initials(profile: Profile): string {

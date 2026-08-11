@@ -504,16 +504,16 @@ function SpeakingPanel({
   )
 }
 
+const GEAR_TEETH_ANGLES = [0, 45, 90, 135, 180, 225, 270, 315]
+
 function SettingsIcon() {
   return (
     <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="2.6" stroke="currentColor" strokeWidth="1.5" />
-      <path
-        d="M10 3.5v1.6M10 14.9v1.6M16.5 10h-1.6M5.1 10H3.5M14.6 5.4l-1.1 1.1M6.5 13.5l-1.1 1.1M14.6 14.6l-1.1-1.1M6.5 6.5L5.4 5.4"
-        stroke="currentColor"
-        strokeWidth="1.5"
-        strokeLinecap="round"
-      />
+      <circle cx="10" cy="10" r="5.6" stroke="currentColor" strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="2.1" stroke="currentColor" strokeWidth="1.5" fill="var(--bg-elevated)" />
+      {GEAR_TEETH_ANGLES.map((angle) => (
+        <rect key={angle} x="9" y="1.5" width="2" height="2.3" rx="0.5" fill="currentColor" transform={`rotate(${angle} 10 10)`} />
+      ))}
     </svg>
   )
 }

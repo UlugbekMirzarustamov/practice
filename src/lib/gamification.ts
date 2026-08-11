@@ -1,4 +1,4 @@
-import type { Session } from '../types/session'
+import { supabase } from './supabaseClient'
 
 const BASE_XP = 15
 const XP_PER_MINUTE = 5
@@ -6,10 +6,6 @@ const XP_STEP = 50 // level L requires XP_STEP * L*(L-1)/2 cumulative XP
 
 export function xpForSession(durationMinutes: number): number {
   return BASE_XP + durationMinutes * XP_PER_MINUTE
-}
-
-export function totalXp(sessions: Session[]): number {
-  return sessions.reduce((sum, s) => sum + xpForSession(s.durationMinutes), 0)
 }
 
 /** Cumulative XP required to *reach* this level. Level 1 requires 0. */
@@ -39,50 +35,6 @@ export function levelProgress(xp: number): LevelProgress {
   return { level, xpIntoLevel, xpForNextLevel, progress: xpIntoLevel / xpForNextLevel }
 }
 
-function dayKey(iso: string): string {
-  return new Date(iso).toDateString()
-}
-
-export function currentStreak(sessions: Session[]): number {
-  if (sessions.length === 0) return 0
-  const days = new Set(sessions.map((s) => dayKey(s.createdAt)))
-  const cursor = new Date()
-  if (!days.has(cursor.toDateString())) {
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  let streak = 0
-  while (days.has(cursor.toDateString())) {
-    streak++
-    cursor.setDate(cursor.getDate() - 1)
-  }
-  return streak
-}
-
-export function bestStreak(sessions: Session[]): number {
-  if (sessions.length === 0) return 0
-  const dayTimes = Array.from(new Set(sessions.map((s) => new Date(dayKey(s.createdAt)).getTime()))).sort((a, b) => a - b)
-  let best = 1
-  let run = 1
-  for (let i = 1; i < dayTimes.length; i++) {
-    const diffDays = Math.round((dayTimes[i] - dayTimes[i - 1]) / 86400000)
-    run = diffDays === 1 ? run + 1 : 1
-    best = Math.max(best, run)
-  }
-  return best
-}
-
-function wordCount(session: Session): number {
-  return session.content.trim() ? session.content.trim().split(/\s+/).length : 0
-}
-
-export function totalWords(sessions: Session[]): number {
-  return sessions.filter((s) => s.mode === 'writing').reduce((sum, s) => sum + wordCount(s), 0)
-}
-
-export function totalSpeakingMinutes(sessions: Session[]): number {
-  return sessions.filter((s) => s.mode === 'speaking').reduce((sum, s) => sum + s.durationMinutes, 0)
-}
-
 export interface Stats {
   totalXp: number
   level: LevelProgress
@@ -93,15 +45,38 @@ export interface Stats {
   totalSpeakingMinutes: number
 }
 
-export function computeStats(sessions: Session[]): Stats {
-  const xp = totalXp(sessions)
+interface UserStatsRow {
+  total_xp: number
+  streak: number
+  best_streak: number
+  session_count: number
+  total_words: number
+  total_speaking_minutes: number
+}
+
+/**
+ * Stats are entirely server-computed (see recompute_user_stats() in the
+ * migration) — this just reads the trusted row and derives the level's
+ * progress-bar fields, which are a pure function of the already-verified
+ * total_xp. There is no client path that can inflate these numbers.
+ */
+export async function loadStats(): Promise<Stats> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) throw new Error('Not signed in')
+
+  const { data, error } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
+  if (error) throw error
+  const row = data as UserStatsRow
+
   return {
-    totalXp: xp,
-    level: levelProgress(xp),
-    streak: currentStreak(sessions),
-    bestStreak: bestStreak(sessions),
-    sessionCount: sessions.length,
-    totalWords: totalWords(sessions),
-    totalSpeakingMinutes: totalSpeakingMinutes(sessions),
+    totalXp: row.total_xp,
+    level: levelProgress(row.total_xp),
+    streak: row.streak,
+    bestStreak: row.best_streak,
+    sessionCount: row.session_count,
+    totalWords: row.total_words,
+    totalSpeakingMinutes: row.total_speaking_minutes,
   }
 }

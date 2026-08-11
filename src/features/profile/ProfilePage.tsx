@@ -1,8 +1,8 @@
-import { useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'motion/react'
-import type { Session } from '../../types/session'
-import { loadSessions, updateSession } from '../../lib/storage'
-import { computeStats } from '../../lib/gamification'
+import type { Comment, Session } from '../../types/session'
+import { loadSessions, updateSession, loadComments, addComment } from '../../lib/storage'
+import { loadStats, type Stats } from '../../lib/gamification'
 import { computeAchievements, CATEGORY_LABELS, type AchievementCategory } from '../../lib/achievements'
 import { loadProfile, updateProfile, initials, type Profile } from '../../lib/profile'
 import { Button } from '../../components/Button'
@@ -19,22 +19,44 @@ function formatMinutes(minutes: number): string {
 }
 
 export function ProfilePage() {
-  const [profile, setProfile] = useState<Profile>(() => loadProfile())
-  const [sessions, setSessions] = useState(() => loadSessions())
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [sessions, setSessions] = useState<Session[]>([])
   const [tab, setTab] = useState<Tab>('about')
   const [editing, setEditing] = useState(false)
-  const [draftName, setDraftName] = useState(profile.displayName)
-  const [draftBio, setDraftBio] = useState(profile.bio)
+  const [draftName, setDraftName] = useState('')
+  const [draftBio, setDraftBio] = useState('')
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const stats = computeStats(sessions)
+  const refresh = () => {
+    loadProfile().then((p) => {
+      setProfile(p)
+      setDraftName(p.displayName)
+      setDraftBio(p.bio)
+    })
+    loadStats().then(setStats)
+    loadSessions().then(setSessions)
+  }
+
+  useEffect(refresh, [])
+
+  if (!profile || !stats) {
+    return (
+      <motion.div className="page" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
+        <div className="page-inner">
+          <p className="lede">Loading...</p>
+        </div>
+      </motion.div>
+    )
+  }
+
   const achievements = computeAchievements(sessions, stats)
   const published = sessions.filter((s) => s.published).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   const unlockedCount = achievements.filter((a) => a.unlocked).length
 
-  const handleSave = () => {
-    const next = updateProfile({ displayName: draftName.trim() || profile.handle, bio: draftBio })
-    setProfile(next)
+  const handleSave = async () => {
+    await updateProfile({ displayName: draftName.trim() || profile.handle, bio: draftBio })
+    refresh()
     setEditing(false)
   }
 
@@ -44,20 +66,20 @@ export function ProfilePage() {
     setEditing(false)
   }
 
-  const handleAvatarPick = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAvatarPick = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file || file.size > 500_000) return
     const reader = new FileReader()
-    reader.onload = () => {
-      const next = updateProfile({ avatarDataUrl: String(reader.result) })
-      setProfile(next)
+    reader.onload = async () => {
+      await updateProfile({ avatarDataUrl: String(reader.result) })
+      refresh()
     }
     reader.readAsDataURL(file)
   }
 
-  const handleUnpublish = (id: string) => {
-    updateSession(id, { published: false })
-    setSessions(loadSessions())
+  const handleUnpublish = async (id: string) => {
+    await updateSession(id, { published: false })
+    loadSessions().then(setSessions)
   }
 
   return (
@@ -165,17 +187,11 @@ export function ProfilePage() {
           (published.length === 0 ? (
             <p className="archive-empty">Nothing published yet. Publish a session from its completion screen.</p>
           ) : (
-            <>
-              <p className="option-hint">
-                Likes and comments are stored on this device only, there's no shared backend yet for other real people to
-                see or interact with your posts.
-              </p>
-              <div className="archive-list">
-                {published.map((s) => (
-                  <PostCard key={s.id} session={s} onUnpublish={handleUnpublish} onChange={() => setSessions(loadSessions())} />
-                ))}
-              </div>
-            </>
+            <div className="archive-list">
+              {published.map((s) => (
+                <PostCard key={s.id} session={s} onUnpublish={handleUnpublish} onChange={() => loadSessions().then(setSessions)} />
+              ))}
+            </div>
           ))}
       </div>
     </motion.div>
@@ -193,21 +209,25 @@ function ProfileStat({ label, value }: { label: string; value: string }) {
 
 function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpublish: (id: string) => void; onChange: () => void }) {
   const [showComments, setShowComments] = useState(false)
+  const [comments, setComments] = useState<Comment[]>([])
   const [draftComment, setDraftComment] = useState('')
   const [copied, setCopied] = useState(false)
 
-  const toggleLike = () => {
-    updateSession(session.id, { liked: !session.liked })
+  useEffect(() => {
+    if (showComments) loadComments(session.id).then(setComments)
+  }, [showComments, session.id])
+
+  const toggleLike = async () => {
+    await updateSession(session.id, { liked: !session.liked })
     onChange()
   }
 
-  const submitComment = () => {
+  const submitComment = async () => {
     const text = draftComment.trim()
     if (!text) return
-    const next = [...(session.comments ?? []), { id: crypto.randomUUID(), text, createdAt: new Date().toISOString() }]
-    updateSession(session.id, { comments: next })
+    const comment = await addComment(session.id, text)
+    setComments((prev) => [...prev, comment])
     setDraftComment('')
-    onChange()
   }
 
   const handleShare = async () => {
@@ -239,7 +259,7 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
           <HeartIcon filled={!!session.liked} /> {session.liked ? 'Liked' : 'Like'}
         </button>
         <button type="button" className="post-action" onClick={() => setShowComments((v) => !v)}>
-          <CommentIcon /> Comment{session.comments?.length ? ` (${session.comments.length})` : ''}
+          <CommentIcon /> Comment{comments.length ? ` (${comments.length})` : ''}
         </button>
         <button type="button" className="post-action" onClick={handleShare}>
           <ShareIcon /> {copied ? 'Link copied' : 'Share'}
@@ -251,7 +271,7 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
 
       {showComments && (
         <div className="post-comments">
-          {(session.comments ?? []).map((c) => (
+          {comments.map((c) => (
             <div key={c.id} className="post-comment">
               <span>{c.text}</span>
               <span className="option-hint" style={{ margin: 0 }}>

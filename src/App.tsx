@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { ScrollProgress } from './components/ScrollProgress'
 import type { Mode, Session } from './types/session'
@@ -7,12 +7,14 @@ import type { Format } from './types/flow'
 import type { IeltsPart } from './data/ielts'
 import { getRandomPrompt } from './data/prompts'
 import { getRandomIeltsTopicGroup, formatIeltsTopicGroup, getRandomIeltsPart2, formatIeltsPart2 } from './data/ielts'
-import { loadSessions, saveSession } from './lib/storage'
+import { createSession } from './lib/storage'
 import { loadDraft, saveDraft, clearDraft, type Draft } from './lib/drafts'
 import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/uiPrefs'
-import { computeStats, type Stats } from './lib/gamification'
+import { loadStats, type Stats } from './lib/gamification'
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
-import { loadProfile } from './lib/profile'
+import { loadProfile, type Profile } from './lib/profile'
+import { useAuth } from './lib/auth'
+import { AuthPage } from './features/auth/AuthPage'
 import { Sidebar, type SidebarDest } from './components/Sidebar'
 import { SessionSetup } from './features/session/SessionSetup'
 import { TopicReveal, type StartOptions } from './features/session/TopicReveal'
@@ -25,6 +27,7 @@ import { ArchiveDetail } from './features/archive/ArchiveDetail'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { LeaderboardPage } from './features/leaderboard/LeaderboardPage'
 import { SettingsPage } from './features/settings/SettingsPage'
+import { AdminPage } from './features/admin/AdminPage'
 
 type Screen =
   | { name: 'setup' }
@@ -74,6 +77,7 @@ type Screen =
   | { name: 'leaderboard' }
   | { name: 'profile' }
   | { name: 'settings' }
+  | { name: 'admin' }
 
 const FOCUS_SCREENS: Screen['name'][] = ['revealing', 'researching', 'locked']
 
@@ -82,22 +86,59 @@ function sidebarDestFor(screen: Screen): SidebarDest {
   if (screen.name === 'leaderboard') return 'leaderboard'
   if (screen.name === 'profile') return 'profile'
   if (screen.name === 'settings') return 'settings'
+  if (screen.name === 'admin') return 'admin'
   return 'dashboard'
 }
 
-function App() {
+function LoadingScreen() {
+  return (
+    <div className="app-shell">
+      <div className="app-main">
+        <div className="page">
+          <div className="page-inner">
+            <span className="wordmark">Practice</span>
+            <p className="lede">Loading...</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function AuthenticatedApp() {
   const [screen, setScreen] = useState<Screen>({ name: 'setup' })
-  const [statsVersion, setStatsVersion] = useState(0)
   const [theme, setTheme] = useState<Theme>(() => loadTheme())
   const [sidebarCollapsed, setSidebarCollapsed] = useState(() => loadSidebarCollapsedDefault())
-  const [profile] = useState(() => loadProfile())
-  const [draft, setDraft] = useState<Draft | null>(() => loadDraft())
+  const [profile, setProfile] = useState<Profile | null>(null)
+  const [stats, setStats] = useState<Stats | null>(null)
+  const [draft, setDraft] = useState<Draft | null>(null)
+  const [bootLoading, setBootLoading] = useState(true)
   const mainRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     applyTheme(theme)
     saveTheme(theme)
   }, [theme])
+
+  useEffect(() => {
+    let cancelled = false
+    Promise.all([loadProfile(), loadStats(), loadDraft()]).then(([p, s, d]) => {
+      if (cancelled) return
+      setProfile(p)
+      setStats(s)
+      setDraft(d)
+      setBootLoading(false)
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const refreshStats = async () => {
+    const next = await loadStats()
+    setStats(next)
+    return next
+  }
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
 
@@ -109,23 +150,14 @@ function App() {
     })
   }
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const stats = useMemo(() => computeStats(loadSessions()), [statsVersion])
-
-  const handlePickTopic = (category: Category, format: Format, durationMinutes: number) => {
-    clearDraft()
+  const handlePickTopic = async (category: Category, format: Format, durationMinutes: number) => {
+    await clearDraft()
     setDraft(null)
-    setScreen({
-      name: 'revealing',
-      category,
-      format,
-      durationMinutes,
-      topic: getRandomPrompt(category),
-    })
+    setScreen({ name: 'revealing', category, format, durationMinutes, topic: getRandomPrompt(category) })
   }
 
-  const handlePickIelts = (part: IeltsPart, durationMinutes: number) => {
-    clearDraft()
+  const handlePickIelts = async (part: IeltsPart, durationMinutes: number) => {
+    await clearDraft()
     setDraft(null)
     const sequential = part === 'part1' || part === 'part3'
     const group = sequential ? getRandomIeltsTopicGroup(part) : null
@@ -194,39 +226,36 @@ function App() {
     })
   }
 
-  const handleComplete = (content: string) => {
+  const handleComplete = async (content: string) => {
     if (screen.name !== 'locked') return
-    clearDraft()
+    await clearDraft()
     setDraft(null)
-    const prevSessions = loadSessions()
-    const prevStats = computeStats(prevSessions)
-    const wasFirstEver = prevSessions.length === 0
-    const session: Session = {
-      id: crypto.randomUUID(),
+    const prevStats = stats ?? (await loadStats())
+    const wasFirstEver = prevStats.sessionCount === 0
+
+    const session = await createSession({
       mode: screen.mode,
-      category: screen.ielts ? `ielts-${screen.ielts}` : screen.category,
+      category: screen.ielts ? (`ielts-${screen.ielts}` as const) : screen.category,
       format: screen.format,
       ieltsPart: screen.ielts,
       topic: screen.topic,
       durationMinutes: screen.durationMinutes,
       content,
-      createdAt: new Date().toISOString(),
-    }
-    saveSession(session)
-    const nextStats = computeStats(loadSessions())
-    setStatsVersion((v) => v + 1)
+    })
+
+    const nextStats = await refreshStats()
     setScreen({ name: 'complete', session, prevStats, nextStats, wasFirstEver })
   }
 
-  const handleFail = () => {
-    clearDraft()
+  const handleFail = async () => {
+    await clearDraft()
     setDraft(null)
     setScreen({ name: 'failed' })
   }
 
-  const handlePause = (content: string, secondsLeft: number, ieltsQuestions?: string[], ieltsTopicLabel?: string) => {
+  const handlePause = async (content: string, secondsLeft: number, ieltsQuestions?: string[], ieltsTopicLabel?: string) => {
     if (screen.name !== 'locked') return
-    saveDraft({
+    await saveDraft({
       mode: screen.mode,
       topic: screen.topic,
       category: screen.category,
@@ -240,7 +269,7 @@ function App() {
       content,
       secondsLeft,
     })
-    setDraft(loadDraft())
+    setDraft(await loadDraft())
     setScreen({ name: 'setup' })
   }
 
@@ -266,8 +295,8 @@ function App() {
     })
   }
 
-  const handleDiscardDraft = () => {
-    clearDraft()
+  const handleDiscardDraft = async () => {
+    await clearDraft()
     setDraft(null)
   }
 
@@ -280,9 +309,12 @@ function App() {
     else if (dest === 'leaderboard') setScreen({ name: 'leaderboard' })
     else if (dest === 'profile') setScreen({ name: 'profile' })
     else if (dest === 'settings') setScreen({ name: 'settings' })
+    else if (dest === 'admin') setScreen({ name: 'admin' })
   }
 
   const showSidebar = !FOCUS_SCREENS.includes(screen.name)
+
+  if (bootLoading || !profile || !stats) return <LoadingScreen />
 
   return (
     <div className="app-shell">
@@ -389,10 +421,20 @@ function App() {
               profile={profile}
             />
           )}
+
+          {screen.name === 'admin' && profile.isAdmin && <AdminPage key="admin" />}
         </AnimatePresence>
       </div>
     </div>
   )
+}
+
+function App() {
+  const { user, loading } = useAuth()
+
+  if (loading) return <LoadingScreen />
+  if (!user) return <AuthPage />
+  return <AuthenticatedApp />
 }
 
 export default App
