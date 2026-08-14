@@ -11,12 +11,17 @@
 -- integrity, which stays entirely server-computed in recompute_user_stats().
 
 alter table public.sessions
-  add column feedback jsonb,
-  add column verified_unaided boolean not null default false;
+  add column if not exists feedback jsonb,
+  add column if not exists verified_unaided boolean not null default false;
 
 -- get_public_session(): add verified_unaided so the badge can render on
 -- shared /s/<id> links. The full feedback report stays private — it is
 -- not part of this narrow whitelisted RPC.
+--
+-- CREATE OR REPLACE can't change a RETURNS TABLE(...) function's column
+-- list, even by appending — Postgres requires DROP FUNCTION first.
+drop function if exists public.get_public_session(uuid);
+
 create or replace function public.get_public_session(p_session_id uuid)
 returns table (
   id uuid,

@@ -233,6 +233,75 @@ h3 {
   font-weight: 600;
   overflow: hidden;
   text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.sidebar-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.sidebar-badge-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--danger);
+  border: 1.5px solid var(--bg-elevated);
+}
+
+.sidebar-badge-count {
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  background: var(--danger);
+  border-radius: 999px;
+  padding: 1px 6px;
+  line-height: 1.4;
+}
+
+.notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  text-align: left;
+}
+
+.notification-row:hover {
+  border-color: var(--accent);
+}
+
+.notification-row.unread {
+  border-color: color-mix(in srgb, var(--accent) 45%, var(--border));
+  background: color-mix(in srgb, var(--accent) 8%, var(--bg-elevated));
+}
+
+.notification-text {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.notification-time {
+  flex-shrink: 0;
 }
 
 .sidebar-bottom {
@@ -3950,6 +4019,48 @@ h3 {
   border: 1px solid var(--border);
   border-radius: 12px;
   background: var(--bg-elevated);
+}
+
+.discover-card {
+  cursor: pointer;
+  width: 100%;
+}
+
+.discover-author-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--accent-strong);
+  font-family: var(--font-mono);
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.discover-author-link:hover {
+  text-decoration: underline;
+}
+
+.discover-search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.user-search-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+  cursor: pointer;
+  text-align: left;
+}
+
+.user-search-row:hover {
+  border-color: var(--accent);
 }
 
 .leaderboard-row.you {

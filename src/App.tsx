@@ -31,6 +31,10 @@ import { SessionComplete } from './features/session/SessionComplete'
 import { SessionFailed } from './features/session/SessionFailed'
 import { ArchiveList } from './features/archive/ArchiveList'
 import { ArchiveDetail } from './features/archive/ArchiveDetail'
+import { DiscoverPage } from './features/discover/DiscoverPage'
+import { PublicProfilePage } from './features/discover/PublicProfilePage'
+import { NotificationsPage } from './features/notifications/NotificationsPage'
+import { loadUnreadNotificationCount } from './lib/notifications'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { LeaderboardPage } from './features/leaderboard/LeaderboardPage'
 import { SettingsPage } from './features/settings/SettingsPage'
@@ -82,6 +86,9 @@ type Screen =
   | { name: 'failed' }
   | { name: 'archive' }
   | { name: 'archiveDetail'; session: Session }
+  | { name: 'discover' }
+  | { name: 'userProfile'; handle: string }
+  | { name: 'notifications' }
   | { name: 'leaderboard' }
   | { name: 'profile' }
   | { name: 'settings' }
@@ -91,6 +98,8 @@ const FOCUS_SCREENS: Screen['name'][] = ['revealing', 'researching', 'locked']
 
 function sidebarDestFor(screen: Screen): SidebarDest {
   if (screen.name === 'archive' || screen.name === 'archiveDetail') return 'archive'
+  if (screen.name === 'discover' || screen.name === 'userProfile') return 'discover'
+  if (screen.name === 'notifications') return 'notifications'
   if (screen.name === 'leaderboard') return 'leaderboard'
   if (screen.name === 'profile') return 'profile'
   if (screen.name === 'settings') return 'settings'
@@ -121,7 +130,12 @@ function AuthenticatedApp() {
   const [stats, setStats] = useState<Stats | null>(null)
   const [draft, setDraft] = useState<Draft | null>(null)
   const [bootLoading, setBootLoading] = useState(true)
+  const [unreadNotifications, setUnreadNotifications] = useState(0)
   const mainRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    loadUnreadNotificationCount().then(setUnreadNotifications).catch(() => {})
+  }, [])
 
   useEffect(() => {
     applyTheme(theme)
@@ -316,6 +330,8 @@ function AuthenticatedApp() {
   const handleSidebarNavigate = (dest: SidebarDest) => {
     if (dest === 'dashboard') setScreen({ name: 'setup' })
     else if (dest === 'archive') setScreen({ name: 'archive' })
+    else if (dest === 'discover') setScreen({ name: 'discover' })
+    else if (dest === 'notifications') setScreen({ name: 'notifications' })
     else if (dest === 'leaderboard') setScreen({ name: 'leaderboard' })
     else if (dest === 'profile') setScreen({ name: 'profile' })
     else if (dest === 'settings') setScreen({ name: 'settings' })
@@ -335,6 +351,7 @@ function AuthenticatedApp() {
           profile={profile}
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapsed}
+          unreadNotifications={unreadNotifications}
         />
       )}
 
@@ -430,6 +447,22 @@ function AuthenticatedApp() {
           )}
 
           {screen.name === 'archiveDetail' && <ArchiveDetail key="archiveDetail" session={screen.session} onBack={goArchive} />}
+
+          {screen.name === 'discover' && (
+            <DiscoverPage key="discover" onOpenProfile={(handle) => setScreen({ name: 'userProfile', handle })} />
+          )}
+
+          {screen.name === 'userProfile' && (
+            <PublicProfilePage key="userProfile" handle={screen.handle} onBack={() => setScreen({ name: 'discover' })} />
+          )}
+
+          {screen.name === 'notifications' && (
+            <NotificationsPage
+              key="notifications"
+              onOpenProfile={(handle) => setScreen({ name: 'userProfile', handle })}
+              onRead={() => setUnreadNotifications(0)}
+            />
+          )}
 
           {screen.name === 'leaderboard' && <LeaderboardPage key="leaderboard" />}
 
