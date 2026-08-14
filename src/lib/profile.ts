@@ -8,6 +8,7 @@ export interface Profile {
   bio: string
   memberSince: string
   isAdmin: boolean
+  hasSeenGuide: boolean
 }
 
 interface ProfileRow {
@@ -18,6 +19,7 @@ interface ProfileRow {
   avatar_url: string | null
   is_admin: boolean
   member_since: string
+  has_seen_guide: boolean
 }
 
 function rowToProfile(row: ProfileRow): Profile {
@@ -29,6 +31,7 @@ function rowToProfile(row: ProfileRow): Profile {
     bio: row.bio,
     memberSince: row.member_since,
     isAdmin: row.is_admin,
+    hasSeenGuide: row.has_seen_guide,
   }
 }
 
@@ -69,6 +72,15 @@ export async function updateProfile(
     return { profile: null, error: { field: 'other', message: error.message } }
   }
   return { profile: rowToProfile(data as ProfileRow), error: null }
+}
+
+/** Fire-and-forget: marks the first-session guide as seen so it never auto-shows again. */
+export async function markGuideSeen(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  if (!user) return
+  await supabase.from('profiles').update({ has_seen_guide: true }).eq('id', user.id)
 }
 
 export function initials(profile: Profile): string {

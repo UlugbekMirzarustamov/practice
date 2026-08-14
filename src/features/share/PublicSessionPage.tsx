@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import {
   loadPublicSession,
   toggleSessionLike,
+  toggleSaveSession,
   loadSessionComments,
   addSessionComment,
   type PublicSession,
@@ -26,6 +27,7 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
   const [session, setSession] = useState<PublicSession | null>(null)
   const [state, setState] = useState<LoadState>('loading')
   const [likeBusy, setLikeBusy] = useState(false)
+  const [saveBusy, setSaveBusy] = useState(false)
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState<SessionComment[] | null>(null)
   const [draftComment, setDraftComment] = useState('')
@@ -70,6 +72,21 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       setSession({ ...session, likedByMe: nowLiked, likeCount: session.likeCount + (nowLiked ? 1 : -1) })
     } finally {
       setLikeBusy(false)
+    }
+  }
+
+  const handleToggleSave = async () => {
+    if (!session) return
+    if (!user) {
+      onTryFree()
+      return
+    }
+    setSaveBusy(true)
+    try {
+      const nowSaved = await toggleSaveSession(session.id)
+      setSession({ ...session, savedByMe: nowSaved })
+    } finally {
+      setSaveBusy(false)
     }
   }
 
@@ -149,6 +166,14 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
             <button type="button" className="post-action" onClick={() => setShowComments((v) => !v)}>
               <CommentIcon /> Comment{session.commentCount > 0 ? ` (${session.commentCount})` : ''}
             </button>
+            <button
+              type="button"
+              className={['post-action', session.savedByMe ? 'saved' : ''].filter(Boolean).join(' ')}
+              onClick={handleToggleSave}
+              disabled={saveBusy}
+            >
+              <SaveIcon filled={session.savedByMe} /> {session.savedByMe ? 'Saved' : 'Save'}
+            </button>
           </div>
 
           {showComments && (
@@ -215,6 +240,14 @@ function CommentIcon() {
   return (
     <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
       <path d="M2 3.5h12v7H6l-3 2.5v-2.5H2v-7z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function SaveIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill={filled ? 'currentColor' : 'none'}>
+      <path d="M4 2.5h8a.5.5 0 01.5.5v10.5l-4.5-3-4.5 3V3a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
     </svg>
   )
 }

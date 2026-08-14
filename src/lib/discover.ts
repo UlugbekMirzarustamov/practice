@@ -14,6 +14,8 @@ export interface DiscoverEntry {
   authorHandle: string
   authorDisplayName: string
   authorAvatarUrl?: string
+  likeCount: number
+  savedByMe: boolean
 }
 
 interface DiscoverRow {
@@ -28,6 +30,8 @@ interface DiscoverRow {
   author_handle: string
   author_display_name: string
   author_avatar_url: string | null
+  like_count: number
+  saved_by_me: boolean
 }
 
 function rowToEntry(row: DiscoverRow): DiscoverEntry {
@@ -43,6 +47,8 @@ function rowToEntry(row: DiscoverRow): DiscoverEntry {
     authorHandle: row.author_handle,
     authorDisplayName: row.author_display_name,
     authorAvatarUrl: row.author_avatar_url ?? undefined,
+    likeCount: row.like_count,
+    savedByMe: row.saved_by_me,
   }
 }
 
@@ -157,4 +163,36 @@ export async function unfollowUser(targetUserId: string): Promise<void> {
   if (!user) throw new Error('Not signed in')
   const { error } = await supabase.from('follows').delete().eq('follower_id', user.id).eq('following_id', targetUserId)
   if (error) throw error
+}
+
+export interface SavedEntry extends DiscoverEntry {
+  savedAt: string
+}
+
+interface SavedRow extends DiscoverRow {
+  saved_at: string
+}
+
+/** The current user's bookmarked sessions, most recently saved first. */
+export async function loadSavedSessions(): Promise<SavedEntry[]> {
+  const { data, error } = await supabase.rpc('get_saved_sessions', { p_limit: 50 })
+  if (error) throw error
+  return ((data ?? []) as SavedRow[]).map((row) => ({ ...rowToEntry(row), savedAt: row.saved_at }))
+}
+
+export interface TrendingTopic {
+  topic: string
+  attempts: number
+}
+
+interface TrendingTopicRow {
+  topic: string
+  attempts: number
+}
+
+/** Topics with the most attempts across all users in the last 7 days, top few only. */
+export async function loadTrendingTopics(limit = 8): Promise<TrendingTopic[]> {
+  const { data, error } = await supabase.rpc('get_trending_topics', { p_limit: limit })
+  if (error) throw error
+  return ((data ?? []) as TrendingTopicRow[]).map((row) => ({ topic: row.topic, attempts: Number(row.attempts) }))
 }

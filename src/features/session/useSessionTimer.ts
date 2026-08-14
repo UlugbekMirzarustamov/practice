@@ -10,6 +10,7 @@ export function useSessionTimer(
   durationMinutes: number,
   onComplete: () => void,
   initialSecondsLeft?: number,
+  ready = true,
 ): UseSessionTimerResult {
   const totalSeconds = durationMinutes * 60
   const [secondsLeft, setSecondsLeft] = useState(initialSecondsLeft ?? totalSeconds)
@@ -18,6 +19,7 @@ export function useSessionTimer(
   onCompleteRef.current = onComplete
 
   useEffect(() => {
+    if (!ready) return
     const startSeconds = initialSecondsLeft ?? totalSeconds
     const endAt = Date.now() + startSeconds * 1000
 
@@ -33,7 +35,7 @@ export function useSessionTimer(
     const interval = setInterval(tick, 250)
     return () => clearInterval(interval)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [totalSeconds])
+  }, [totalSeconds, ready])
 
   const minutes = Math.floor(secondsLeft / 60)
   const seconds = secondsLeft % 60

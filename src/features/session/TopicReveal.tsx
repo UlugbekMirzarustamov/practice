@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import type { Category } from '../../data/prompts'
+import type { Category, Difficulty } from '../../data/prompts'
 import { getRandomPrompt } from '../../data/prompts'
 import type { Format } from '../../types/flow'
 import type { Mode } from '../../types/session'
@@ -25,6 +25,8 @@ interface TopicRevealProps {
   ielts?: IeltsPart
   initialIeltsQuestions?: string[]
   initialIeltsTopicLabel?: string
+  isCustomTopic?: boolean
+  difficulty?: Difficulty | null
   onLeave: () => void
   onStart: (mode: Mode, topic: string, opts: StartOptions) => void
   onResearch: (mode: Mode, topic: string, minutes: number, opts: StartOptions) => void
@@ -34,8 +36,8 @@ const FULL_SHUFFLE = [30, 30, 32, 35, 38, 42, 46, 50, 56, 63, 72, 82, 95, 110, 1
 const QUICK_SHUFFLE = [30, 32, 38, 48, 62, 82]
 const DANGER_PRESETS = [5, 8, 12]
 
-function randomPrompt(category: Category, ielts?: IeltsPart): string {
-  return ielts ? getRandomIeltsPrompt(ielts) : getRandomPrompt(category)
+function randomPrompt(category: Category, ielts?: IeltsPart, difficulty?: Difficulty | null): string {
+  return ielts ? getRandomIeltsPrompt(ielts) : getRandomPrompt(category, difficulty)
 }
 
 const isSequentialIelts = (ielts?: IeltsPart) => ielts === 'part1' || ielts === 'part3'
@@ -47,6 +49,8 @@ export function TopicReveal({
   ielts,
   initialIeltsQuestions,
   initialIeltsTopicLabel,
+  isCustomTopic,
+  difficulty,
   onLeave,
   onStart,
   onResearch,
@@ -54,9 +58,9 @@ export function TopicReveal({
   const [topic, setTopic] = useState(initialTopic)
   const [ieltsQuestions, setIeltsQuestions] = useState<string[] | undefined>(initialIeltsQuestions)
   const [ieltsTopicLabel, setIeltsTopicLabel] = useState<string | undefined>(initialIeltsTopicLabel)
-  const [display, setDisplay] = useState(() => randomPrompt(category, ielts))
-  const [shuffling, setShuffling] = useState(true)
-  const [settled, setSettled] = useState(false)
+  const [display, setDisplay] = useState(() => (isCustomTopic ? initialTopic : randomPrompt(category, ielts, difficulty)))
+  const [shuffling, setShuffling] = useState(!isCustomTopic)
+  const [settled, setSettled] = useState(!!isCustomTopic)
   const [mode, setMode] = useState<Mode | null>(ielts ? 'speaking' : null)
   const [dangerChoice, setDangerChoice] = useState<boolean | null>(null)
   const [dangerSeconds, setDangerSeconds] = useState(8)
@@ -68,6 +72,7 @@ export function TopicReveal({
   const isIeltsPrep = ielts === 'part2'
 
   useEffect(() => {
+    if (isCustomTopic) return
     const delays = runId === 0 ? FULL_SHUFFLE : QUICK_SHUFFLE
     const total = delays.length
     let cancelled = false
@@ -88,7 +93,7 @@ export function TopicReveal({
             setSettled(true)
             playSettleChime()
           } else {
-            setDisplay(randomPrompt(category, ielts))
+            setDisplay(randomPrompt(category, ielts, difficulty))
             playTick(i / total)
           }
         }, cumulative),
@@ -113,8 +118,8 @@ export function TopicReveal({
       nextQuestions = group.questions
       nextTopicLabel = group.topic
     } else {
-      nextTopic = randomPrompt(category, ielts)
-      if (nextTopic === topic) nextTopic = randomPrompt(category, ielts)
+      nextTopic = randomPrompt(category, ielts, difficulty)
+      if (nextTopic === topic) nextTopic = randomPrompt(category, ielts, difficulty)
     }
 
     setTopic(nextTopic)
@@ -251,9 +256,11 @@ export function TopicReveal({
           )}
 
           <div className="reveal-links">
-            <button type="button" className="text-link" onClick={handleReroll}>
-              Change topic
-            </button>
+            {!isCustomTopic && (
+              <button type="button" className="text-link" onClick={handleReroll}>
+                Change topic
+              </button>
+            )}
             <button type="button" className="text-link" onClick={onLeave}>
               Leave
             </button>

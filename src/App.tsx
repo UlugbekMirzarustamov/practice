@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { ScrollProgress } from './components/ScrollProgress'
 import type { Mode, Session, SessionFeedback } from './types/session'
-import type { Category } from './data/prompts'
+import type { Category, Difficulty } from './data/prompts'
 import type { Format } from './types/flow'
 import type { IeltsPart } from './data/ielts'
 import { getRandomPrompt } from './data/prompts'
@@ -10,10 +10,11 @@ import { getRandomIeltsTopicGroup, formatIeltsTopicGroup, getRandomIeltsPart2, f
 import { createSession } from './lib/storage'
 import { loadDraft, saveDraft, clearDraft, type Draft } from './lib/drafts'
 import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/uiPrefs'
-import { loadStats, type Stats } from './lib/gamification'
+import { loadStats, checkAndUnlockMilestones, type Stats } from './lib/gamification'
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
-import { loadProfile, type Profile } from './lib/profile'
-import { primeAudio } from './lib/sound'
+import { loadProfile, markGuideSeen, type Profile } from './lib/profile'
+import { primeAudio, playCompleteChime, playMilestoneChime, vibrate } from './lib/sound'
+import { loadSoundEnabled, saveSoundEnabled } from './lib/soundPrefs'
 import { useAuth } from './lib/auth'
 import { AuthPage } from './features/auth/AuthPage'
 import { LandingPage } from './features/landing/LandingPage'
@@ -28,6 +29,7 @@ import { ResearchPhase } from './features/session/ResearchPhase'
 import { SessionLock } from './features/session/SessionLock'
 import { SessionFeedbackReport } from './features/session/SessionFeedbackReport'
 import { SessionComplete } from './features/session/SessionComplete'
+import { MilestoneCelebration } from './features/gamification/MilestoneCelebration'
 import { SessionFailed } from './features/session/SessionFailed'
 import { ArchiveList } from './features/archive/ArchiveList'
 import { ArchiveDetail } from './features/archive/ArchiveDetail'
@@ -51,6 +53,8 @@ type Screen =
       ieltsTopicLabel?: string
       durationMinutes: number
       topic: string
+      isCustomTopic?: boolean
+      difficulty?: Difficulty | null
     }
   | {
       name: 'researching'
@@ -65,6 +69,7 @@ type Screen =
       dangerSeconds: number
       topic: string
       researchMinutes: number
+      isCustomTopic?: boolean
     }
   | {
       name: 'locked'
@@ -80,6 +85,7 @@ type Screen =
       topic: string
       initialContent?: string
       initialSecondsLeft?: number
+      isCustomTopic?: boolean
     }
   | { name: 'feedback'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
   | { name: 'complete'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
@@ -131,6 +137,8 @@ function AuthenticatedApp() {
   const [draft, setDraft] = useState<Draft | null>(null)
   const [bootLoading, setBootLoading] = useState(true)
   const [unreadNotifications, setUnreadNotifications] = useState(0)
+  const [pendingMilestones, setPendingMilestones] = useState<string[]>([])
+  const [soundEnabled, setSoundEnabled] = useState<boolean>(() => loadSoundEnabled())
   const mainRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -164,6 +172,14 @@ function AuthenticatedApp() {
 
   const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
 
+  const toggleSound = () => {
+    setSoundEnabled((v) => {
+      const next = !v
+      saveSoundEnabled(next)
+      return next
+    })
+  }
+
   const toggleSidebarCollapsed = () => {
     setSidebarCollapsed((c) => {
       const next = !c
@@ -172,10 +188,38 @@ function AuthenticatedApp() {
     })
   }
 
-  const handlePickTopic = async (category: Category, format: Format, durationMinutes: number) => {
+  const handlePickTopic = async (
+    category: Category,
+    format: Format,
+    durationMinutes: number,
+    customTopic?: string,
+    difficulty?: Difficulty | null,
+  ) => {
     await clearDraft()
     setDraft(null)
-    setScreen({ name: 'revealing', category, format, durationMinutes, topic: getRandomPrompt(category) })
+    const isCustomTopic = !!customTopic
+    setScreen({
+      name: 'revealing',
+      category,
+      format,
+      durationMinutes,
+      topic: customTopic || getRandomPrompt(category, difficulty),
+      isCustomTopic,
+      difficulty,
+    })
+  }
+
+  const handleStartTrendingTopic = async (topic: string) => {
+    await clearDraft()
+    setDraft(null)
+    setScreen({
+      name: 'revealing',
+      category: 'general',
+      format: 'cuff',
+      durationMinutes: 5,
+      topic,
+      isCustomTopic: true,
+    })
   }
 
   const handlePickIelts = async (part: IeltsPart, durationMinutes: number) => {
@@ -210,6 +254,7 @@ function AuthenticatedApp() {
       dangerEnabled: opts.dangerEnabled,
       dangerSeconds: opts.dangerSeconds,
       topic,
+      isCustomTopic: screen.isCustomTopic,
     })
   }
 
@@ -228,6 +273,7 @@ function AuthenticatedApp() {
       dangerSeconds: opts.dangerSeconds,
       topic,
       researchMinutes,
+      isCustomTopic: screen.isCustomTopic,
     })
   }
 
@@ -245,6 +291,7 @@ function AuthenticatedApp() {
       dangerEnabled: screen.dangerEnabled,
       dangerSeconds: screen.dangerSeconds,
       topic: screen.topic,
+      isCustomTopic: screen.isCustomTopic,
     })
   }
 
@@ -265,10 +312,28 @@ function AuthenticatedApp() {
       content,
       feedback,
       verifiedUnaided,
+      isCustomTopic: screen.isCustomTopic,
     })
 
     const nextStats = await refreshStats()
     setScreen({ name: 'feedback', session, prevStats, nextStats, wasFirstEver })
+
+    if (soundEnabled) {
+      playCompleteChime()
+      vibrate(30)
+    }
+
+    checkAndUnlockMilestones()
+      .then((ids) => {
+        if (ids.length) {
+          setPendingMilestones((existing) => [...existing, ...ids])
+          if (soundEnabled) {
+            playMilestoneChime()
+            vibrate([30, 60, 30])
+          }
+        }
+      })
+      .catch(() => {})
   }
 
   const handleFail = async () => {
@@ -371,6 +436,8 @@ function AuthenticatedApp() {
               ielts={screen.ielts}
               initialIeltsQuestions={screen.ieltsQuestions}
               initialIeltsTopicLabel={screen.ieltsTopicLabel}
+              isCustomTopic={screen.isCustomTopic}
+              difficulty={screen.difficulty}
               onLeave={handleReset}
               onStart={handleSessionStart}
               onResearch={handleResearchStart}
@@ -404,6 +471,11 @@ function AuthenticatedApp() {
               onFail={handleFail}
               onPause={handlePause}
               onLeaveNeutral={handleLeaveNeutral}
+              showFirstSessionGuide={!profile.hasSeenGuide}
+              onGuideDismissed={() => {
+                setProfile({ ...profile, hasSeenGuide: true })
+                markGuideSeen()
+              }}
             />
           )}
 
@@ -446,10 +518,14 @@ function AuthenticatedApp() {
             />
           )}
 
-          {screen.name === 'archiveDetail' && <ArchiveDetail key="archiveDetail" session={screen.session} onBack={goArchive} />}
+          {screen.name === 'archiveDetail' && <ArchiveDetail key="archiveDetail" session={screen.session} stats={stats} onBack={goArchive} />}
 
           {screen.name === 'discover' && (
-            <DiscoverPage key="discover" onOpenProfile={(handle) => setScreen({ name: 'userProfile', handle })} />
+            <DiscoverPage
+              key="discover"
+              onOpenProfile={(handle) => setScreen({ name: 'userProfile', handle })}
+              onStartTopic={handleStartTrendingTopic}
+            />
           )}
 
           {screen.name === 'userProfile' && (
@@ -466,7 +542,9 @@ function AuthenticatedApp() {
 
           {screen.name === 'leaderboard' && <LeaderboardPage key="leaderboard" />}
 
-          {screen.name === 'profile' && <ProfilePage key="profile" />}
+          {screen.name === 'profile' && (
+            <ProfilePage key="profile" onOpenProfile={(handle) => setScreen({ name: 'userProfile', handle })} />
+          )}
 
           {screen.name === 'settings' && (
             <SettingsPage
@@ -475,6 +553,8 @@ function AuthenticatedApp() {
               onToggleTheme={toggleTheme}
               sidebarCollapsed={sidebarCollapsed}
               onToggleSidebarCollapsed={toggleSidebarCollapsed}
+              soundEnabled={soundEnabled}
+              onToggleSound={toggleSound}
               profile={profile}
             />
           )}
@@ -482,6 +562,16 @@ function AuthenticatedApp() {
           {screen.name === 'admin' && profile.isAdmin && <AdminPage key="admin" />}
         </AnimatePresence>
       </div>
+
+      <AnimatePresence>
+        {pendingMilestones.length > 0 && (
+          <MilestoneCelebration
+            key={pendingMilestones[0]}
+            milestoneId={pendingMilestones[0]}
+            onDismiss={() => setPendingMilestones((existing) => existing.slice(1))}
+          />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

@@ -10,6 +10,7 @@ import { useSpeakingTiming } from './useSpeakingTiming'
 import { useSpeechRecognition, isSpeechRecognitionSupported } from '../speaking/useSpeechRecognition'
 import { SessionOptionsPanel, EyeIcon, EyeOffIcon } from './SessionOptionsPanel'
 import { FormattingDock } from './FormattingDock'
+import { FirstSessionGuide } from './FirstSessionGuide'
 import { loadWritingPrefs, saveWritingPrefs, type WritingPrefs } from '../../lib/writingPrefs'
 import { playKeystroke, startAmbient, stopAmbient } from '../../lib/sound'
 import { analyzeSpeakingFeedback, analyzeWritingFeedback } from '../../lib/sessionAnalysis'
@@ -32,6 +33,9 @@ interface SessionLockProps {
   disablePause?: boolean
   /** Called instead of an autosave-via-onPause when the leave grace period runs out. */
   onLeaveTimeout?: (content: string) => void
+  /** Shows the skippable first-session walkthrough before the timer starts. */
+  showFirstSessionGuide?: boolean
+  onGuideDismissed?: () => void
 }
 
 const isSequentialIelts = (ielts?: IeltsPart) => ielts === 'part1' || ielts === 'part3'
@@ -53,8 +57,11 @@ export function SessionLock({
   onLeaveNeutral,
   disablePause,
   onLeaveTimeout,
+  showFirstSessionGuide,
+  onGuideDismissed,
 }: SessionLockProps) {
   const [content, setContent] = useState(initialContent ?? '')
+  const [guideOpen, setGuideOpen] = useState(!!showFirstSessionGuide)
   const [activeConfirm, setActiveConfirm] = useState<'give-up' | 'finish' | 'pause' | 'change-part' | null>(null)
   const [optionsOpen, setOptionsOpen] = useState(false)
   const [isFullscreen, setIsFullscreen] = useState(false)
@@ -91,6 +98,7 @@ export function SessionLock({
       onComplete(finalContent, feedback, verifiedUnaided)
     },
     initialSecondsLeft,
+    !guideOpen,
   )
   const sequential = isSequentialIelts(ielts) && !!liveQuestions
 
@@ -102,8 +110,13 @@ export function SessionLock({
     }
   }
 
-  const { secondsRemaining: leaveSecondsRemaining } = useLeaveGuard(true, handleLeaveTimeout)
-  const { silentSeconds } = useInactivityFail(dangerEnabled, dangerSeconds, finalContent, onFail)
+  const { secondsRemaining: leaveSecondsRemaining } = useLeaveGuard(!guideOpen, handleLeaveTimeout)
+  const { silentSeconds } = useInactivityFail(dangerEnabled && !guideOpen, dangerSeconds, finalContent, onFail)
+
+  const dismissGuide = () => {
+    setGuideOpen(false)
+    onGuideDismissed?.()
+  }
 
   useEffect(() => {
     if (prefs.ambient !== 'none') startAmbient(prefs.ambient, prefs.ambientVolume)
@@ -191,6 +204,8 @@ export function SessionLock({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
     >
+      <AnimatePresence>{guideOpen && <FirstSessionGuide onDismiss={dismissGuide} />}</AnimatePresence>
+
       <AnimatePresence>
         {leaveSecondsRemaining !== null && (
           <motion.div

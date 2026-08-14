@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import type { Category } from '../../data/prompts'
+import type { Category, Difficulty } from '../../data/prompts'
+import { DIFFICULTIES } from '../../data/prompts'
 import type { Format } from '../../types/flow'
 import type { Stats } from '../../lib/gamification'
 import type { IeltsPart } from '../../data/ielts'
@@ -16,9 +17,11 @@ import { usePageMeta } from '../../lib/usePageMeta'
 
 type PracticeType = 'general' | 'ielts'
 
+type TopicSource = 'random' | 'custom'
+
 interface SessionSetupProps {
   stats: Stats
-  onStart: (category: Category, format: Format, durationMinutes: number) => void
+  onStart: (category: Category, format: Format, durationMinutes: number, customTopic?: string, difficulty?: Difficulty | null) => void
   onStartIelts: (part: IeltsPart, durationMinutes: number) => void
 }
 
@@ -29,13 +32,20 @@ export function SessionSetup({ stats, onStart, onStartIelts }: SessionSetupProps
   const [format, setFormat] = useState<Format>('cuff')
   const [ieltsPart, setIeltsPart] = useState<IeltsPart>('part1')
   const [duration, setDuration] = useState(5)
+  const [topicSource, setTopicSource] = useState<TopicSource>('random')
+  const [customTopic, setCustomTopic] = useState('')
+  const [difficulty, setDifficulty] = useState<Difficulty | null>(null)
+
+  const trimmedCustomTopic = customTopic.trim()
+  const canStart = practiceType === 'ielts' || topicSource === 'random' || trimmedCustomTopic.length > 0
 
   const handleStart = () => {
+    if (!canStart) return
     primeAudio()
     if (practiceType === 'ielts') {
       onStartIelts(ieltsPart, duration)
     } else {
-      onStart(category, format, duration)
+      onStart(category, format, duration, topicSource === 'custom' ? trimmedCustomTopic : undefined, difficulty)
     }
   }
 
@@ -57,6 +67,16 @@ export function SessionSetup({ stats, onStart, onStartIelts }: SessionSetupProps
           transition={{ type: 'spring', stiffness: 260, damping: 22 }}
         >
           <StreakGrowth streak={stats.streak} sessionCount={stats.sessionCount} size="lg" />
+          {stats.streakFreezes > 0 && (
+            <div className="freeze-badge" title="Miss a day with a freeze available and your streak survives">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                <path d="M12 2v20M5 6l14 12M19 6L5 18M4 12h16M8 3l4 3 4-3M8 21l4-3 4 3M3 8l3 4-3 4M21 8l-3 4 3 4" />
+              </svg>
+              <span>
+                {stats.streakFreezes} freeze{stats.streakFreezes === 1 ? '' : 's'}
+              </span>
+            </div>
+          )}
           <p className="streak-anchor-line">
             {stats.streak > 0
               ? `${stats.streak} day${stats.streak === 1 ? '' : 's'} strong. Keep it alive today.`
@@ -97,8 +117,52 @@ export function SessionSetup({ stats, onStart, onStartIelts }: SessionSetupProps
           <>
             <div className="field">
               <span className="field-label">Topic</span>
-              <CategoryDropdown value={category} onChange={setCategory} />
+              <div className="option-row" style={{ marginBottom: 10 }}>
+                <OptionToggle
+                  groupId="topic-source"
+                  label="Random"
+                  tagline="Bema picks for you"
+                  selected={topicSource === 'random'}
+                  onClick={() => setTopicSource('random')}
+                />
+                <OptionToggle
+                  groupId="topic-source"
+                  label="Your own"
+                  tagline="Type a prompt"
+                  selected={topicSource === 'custom'}
+                  onClick={() => setTopicSource('custom')}
+                />
+              </div>
+              {topicSource === 'random' ? (
+                <CategoryDropdown value={category} onChange={setCategory} />
+              ) : (
+                <input
+                  className="search-input"
+                  placeholder="Type your own topic or prompt..."
+                  value={customTopic}
+                  onChange={(e) => setCustomTopic(e.target.value)}
+                  maxLength={200}
+                />
+              )}
             </div>
+
+            {topicSource === 'random' && (
+              <div className="field">
+                <span className="field-label">Difficulty</span>
+                <div className="option-row">
+                  <OptionToggle groupId="difficulty" label="Any" selected={difficulty === null} onClick={() => setDifficulty(null)} />
+                  {DIFFICULTIES.map((d) => (
+                    <OptionToggle
+                      key={d.id}
+                      groupId="difficulty"
+                      label={d.label}
+                      selected={difficulty === d.id}
+                      onClick={() => setDifficulty(d.id)}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
 
             <div className="field">
               <span className="field-label">Format</span>
@@ -157,8 +221,8 @@ export function SessionSetup({ stats, onStart, onStartIelts }: SessionSetupProps
 
         <div className="glow-cta-wrap">
           <GlowEffect />
-          <Button variant="primary" block onClick={handleStart}>
-            Find my topic
+          <Button variant="primary" block onClick={handleStart} disabled={!canStart}>
+            {practiceType === 'general' && topicSource === 'custom' ? 'Use this topic' : 'Find my topic'}
           </Button>
         </div>
       </div>

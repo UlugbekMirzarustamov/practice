@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { loadDiscoverFeed, searchUsers, DISCOVER_PAGE_SIZE, type DiscoverEntry, type UserSearchResult } from '../../lib/discover'
+import {
+  loadDiscoverFeed,
+  searchUsers,
+  loadTrendingTopics,
+  DISCOVER_PAGE_SIZE,
+  type DiscoverEntry,
+  type UserSearchResult,
+  type TrendingTopic,
+} from '../../lib/discover'
+import { toggleSaveSession } from '../../lib/publicSession'
 import { VerifiedBadge } from '../../components/VerifiedBadge'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
 
 interface DiscoverPageProps {
   onOpenProfile: (handle: string) => void
+  onStartTopic: (topic: string) => void
 }
 
 function nameInitials(name: string): string {
@@ -16,7 +26,7 @@ function nameInitials(name: string): string {
   return (parts[0][0] + parts[1][0]).toUpperCase()
 }
 
-export function DiscoverPage({ onOpenProfile }: DiscoverPageProps) {
+export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps) {
   usePageMeta({ title: 'Discover — Bema', description: 'Published sessions from the Bema community, most recent first.' })
   const [feed, setFeed] = useState<DiscoverEntry[] | null>(null)
   const [hasMore, setHasMore] = useState(true)
@@ -24,12 +34,14 @@ export function DiscoverPage({ onOpenProfile }: DiscoverPageProps) {
   const [query, setQuery] = useState('')
   const [results, setResults] = useState<UserSearchResult[] | null>(null)
   const [searching, setSearching] = useState(false)
+  const [trending, setTrending] = useState<TrendingTopic[] | null>(null)
 
   useEffect(() => {
     loadDiscoverFeed().then((entries) => {
       setFeed(entries)
       setHasMore(entries.length === DISCOVER_PAGE_SIZE)
     })
+    loadTrendingTopics().then(setTrending).catch(() => setTrending([]))
   }, [])
 
   useEffect(() => {
@@ -71,6 +83,21 @@ export function DiscoverPage({ onOpenProfile }: DiscoverPageProps) {
       <div className="page-inner" style={{ maxWidth: 640 }}>
         <h1 className="setup-title">Discover</h1>
         <p className="lede">Published sessions from the Bema community, most recent first.</p>
+
+        {trending && trending.length > 0 && (
+          <div className="trending-block">
+            <span className="field-label">Trending topics</span>
+            <div className="trending-list">
+              {trending.map((t) => (
+                <button key={t.topic} type="button" className="trending-chip" onClick={() => onStartTopic(t.topic)}>
+                  <TrendingIcon />
+                  <span className="trending-chip-topic">{t.topic}</span>
+                  <span className="trending-chip-count tabular">{t.attempts}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
 
         <input
           className="search-input"
@@ -126,8 +153,22 @@ export function DiscoverPage({ onOpenProfile }: DiscoverPageProps) {
 }
 
 function DiscoverCard({ entry, onOpenProfile }: { entry: DiscoverEntry; onOpenProfile: (handle: string) => void }) {
+  const [saved, setSaved] = useState(entry.savedByMe)
+  const [busy, setBusy] = useState(false)
+
   const open = () => {
     window.location.href = `/s/${entry.id}`
+  }
+
+  const handleToggleSave = async (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (busy) return
+    setBusy(true)
+    try {
+      setSaved(await toggleSaveSession(entry.id))
+    } finally {
+      setBusy(false)
+    }
   }
 
   return (
@@ -149,6 +190,16 @@ function DiscoverCard({ entry, onOpenProfile }: { entry: DiscoverEntry; onOpenPr
         <div className="archive-card-badges">
           {entry.verifiedUnaided && <VerifiedBadge size="sm" compact />}
           <span className={`mode-pill ${entry.mode}`}>{entry.mode}</span>
+          <button
+            type="button"
+            className={['save-icon-btn', saved ? 'active' : ''].filter(Boolean).join(' ')}
+            onClick={handleToggleSave}
+            disabled={busy}
+            aria-label={saved ? 'Remove from saved' : 'Save session'}
+            title={saved ? 'Remove from saved' : 'Save session'}
+          >
+            <SaveIcon filled={saved} />
+          </button>
         </div>
       </div>
       <div className="archive-card-meta">
@@ -172,5 +223,22 @@ function DiscoverCard({ entry, onOpenProfile }: { entry: DiscoverEntry; onOpenPr
         {entry.excerpt.length >= 220 ? '…' : ''}
       </div>
     </motion.div>
+  )
+}
+
+function SaveIcon({ filled }: { filled: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill={filled ? 'currentColor' : 'none'}>
+      <path d="M4 2.5h8a.5.5 0 01.5.5v10.5l-4.5-3-4.5 3V3a.5.5 0 01.5-.5z" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function TrendingIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+      <path d="M2 11.5L6 7.5l3 3 5-5.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M11 5h3v3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }

@@ -43,6 +43,7 @@ export interface Stats {
   sessionCount: number
   totalWords: number
   totalSpeakingMinutes: number
+  streakFreezes: number
 }
 
 interface UserStatsRow {
@@ -66,8 +67,12 @@ export async function loadStats(): Promise<Stats> {
   } = await supabase.auth.getUser()
   if (!user) throw new Error('Not signed in')
 
-  const { data, error } = await supabase.from('user_stats').select('*').eq('user_id', user.id).single()
+  const [{ data, error }, { data: freezeCount, error: freezeError }] = await Promise.all([
+    supabase.from('user_stats').select('*').eq('user_id', user.id).single(),
+    supabase.rpc('get_streak_freeze_status'),
+  ])
   if (error) throw error
+  if (freezeError) console.warn('get_streak_freeze_status unavailable (has migration 0007 been run?):', freezeError)
   const row = data as UserStatsRow
 
   return {
@@ -78,5 +83,19 @@ export async function loadStats(): Promise<Stats> {
     sessionCount: row.session_count,
     totalWords: row.total_words,
     totalSpeakingMinutes: row.total_speaking_minutes,
+    streakFreezes: freezeError ? 0 : ((freezeCount as number) ?? 0),
   }
+}
+
+/**
+ * Checks whether the stats just recomputed by the server crossed a
+ * session-count or streak milestone, and atomically claims it via
+ * user_achievements (unique per user+achievement, ON CONFLICT DO
+ * NOTHING server-side) so it fires at most once ever, even across
+ * refreshes or duplicate calls. Call right after a session completes.
+ */
+export async function checkAndUnlockMilestones(): Promise<string[]> {
+  const { data, error } = await supabase.rpc('check_and_unlock_milestones')
+  if (error) throw error
+  return ((data as { achievement_id: string }[]) ?? []).map((row) => row.achievement_id)
 }

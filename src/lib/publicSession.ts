@@ -17,6 +17,7 @@ export interface PublicSession {
   likeCount: number
   likedByMe: boolean
   commentCount: number
+  savedByMe: boolean
 }
 
 interface PublicSessionRow {
@@ -34,6 +35,7 @@ interface PublicSessionRow {
   like_count: number
   liked_by_me: boolean
   comment_count: number
+  saved_by_me: boolean
 }
 
 /** Loads a single published session's public-safe fields, no auth required. Null if not found or not published. */
@@ -57,6 +59,7 @@ export async function loadPublicSession(id: string): Promise<PublicSession | nul
     likeCount: row.like_count,
     likedByMe: row.liked_by_me,
     commentCount: row.comment_count,
+    savedByMe: row.saved_by_me,
   }
 }
 
@@ -68,6 +71,13 @@ export function publicSessionUrl(sessionId: string): string {
 /** Toggles the current user's like on a session; returns the new liked state. */
 export async function toggleSessionLike(sessionId: string): Promise<boolean> {
   const { data, error } = await supabase.rpc('toggle_session_like', { p_session_id: sessionId })
+  if (error) throw error
+  return data as boolean
+}
+
+/** Toggles the current user's bookmark on a session; returns the new saved state. */
+export async function toggleSaveSession(sessionId: string): Promise<boolean> {
+  const { data, error } = await supabase.rpc('toggle_save_session', { p_session_id: sessionId })
   if (error) throw error
   return data as boolean
 }

@@ -5,10 +5,12 @@ import { loadSessions, updateSession, loadComments, addComment } from '../../lib
 import { loadStats, type Stats } from '../../lib/gamification'
 import { computeAchievements, CATEGORY_LABELS, type AchievementCategory } from '../../lib/achievements'
 import { loadProfile, updateProfile, initials, type Profile } from '../../lib/profile'
+import { loadSavedSessions, type SavedEntry } from '../../lib/discover'
+import { toggleSaveSession } from '../../lib/publicSession'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
 
-type Tab = 'about' | 'posts'
+type Tab = 'about' | 'posts' | 'saved'
 
 const CATEGORY_ORDER: AchievementCategory[] = ['sessions', 'streak', 'output', 'discovery']
 
@@ -19,11 +21,16 @@ function formatMinutes(minutes: number): string {
   return rest > 0 ? `${hours}h ${rest}m` : `${hours}h`
 }
 
-export function ProfilePage() {
+interface ProfilePageProps {
+  onOpenProfile: (handle: string) => void
+}
+
+export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
   usePageMeta({ title: 'Your Profile — Bema', description: 'Your stats, achievements, and published sessions.' })
   const [profile, setProfile] = useState<Profile | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
+  const [saved, setSaved] = useState<SavedEntry[] | null>(null)
   const [tab, setTab] = useState<Tab>('about')
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState('')
@@ -42,6 +49,7 @@ export function ProfilePage() {
     })
     loadStats().then(setStats)
     loadSessions().then(setSessions)
+    loadSavedSessions().then(setSaved).catch(() => setSaved([]))
   }
 
   useEffect(refresh, [])
@@ -210,6 +218,9 @@ export function ProfilePage() {
           <button type="button" className={['filter-chip', tab === 'posts' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('posts')}>
             Posts ({published.length})
           </button>
+          <button type="button" className={['filter-chip', tab === 'saved' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('saved')}>
+            Saved{saved ? ` (${saved.length})` : ''}
+          </button>
         </div>
 
         {tab === 'about' && (
@@ -243,6 +254,24 @@ export function ProfilePage() {
             <div className="archive-list">
               {published.map((s) => (
                 <PostCard key={s.id} session={s} onUnpublish={handleUnpublish} onChange={() => loadSessions().then(setSessions)} />
+              ))}
+            </div>
+          ))}
+
+        {tab === 'saved' &&
+          (!saved ? (
+            <p className="lede">Loading...</p>
+          ) : saved.length === 0 ? (
+            <p className="archive-empty">Nothing saved yet. Bookmark a session from Discover.</p>
+          ) : (
+            <div className="archive-list">
+              {saved.map((s) => (
+                <SavedCard
+                  key={s.id}
+                  entry={s}
+                  onOpenProfile={onOpenProfile}
+                  onUnsave={() => setSaved((prev) => (prev ? prev.filter((e) => e.id !== s.id) : prev))}
+                />
               ))}
             </div>
           ))}
@@ -346,6 +375,68 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function SavedCard({
+  entry,
+  onOpenProfile,
+  onUnsave,
+}: {
+  entry: SavedEntry
+  onOpenProfile: (handle: string) => void
+  onUnsave: () => void
+}) {
+  const [busy, setBusy] = useState(false)
+
+  const handleUnsave = async () => {
+    setBusy(true)
+    try {
+      await toggleSaveSession(entry.id)
+      onUnsave()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="archive-card" role="button" tabIndex={0} onClick={() => (window.location.href = `/s/${entry.id}`)}>
+      <div className="archive-card-top">
+        <span className="archive-card-topic">{entry.topic}</span>
+        <span className={`mode-pill ${entry.mode}`}>{entry.mode}</span>
+      </div>
+      <div className="archive-card-meta">
+        <button
+          type="button"
+          className="discover-author-link"
+          onClick={(e) => {
+            e.stopPropagation()
+            onOpenProfile(entry.authorHandle)
+          }}
+        >
+          @{entry.authorHandle}
+        </button>
+        <span>·</span>
+        <span>Saved {new Date(entry.savedAt).toLocaleDateString()}</span>
+      </div>
+      <div className="archive-card-snippet">
+        {entry.excerpt || 'No content.'}
+        {entry.excerpt.length >= 220 ? '…' : ''}
+      </div>
+      <div className="post-actions">
+        <button
+          type="button"
+          className="text-link give-up"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleUnsave()
+          }}
+          disabled={busy}
+        >
+          Remove from saved
+        </button>
+      </div>
     </div>
   )
 }

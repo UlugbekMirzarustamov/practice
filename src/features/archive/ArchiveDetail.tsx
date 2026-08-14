@@ -5,10 +5,14 @@ import { CATEGORIES } from '../../data/prompts'
 import { ieltsPartLabel } from '../../data/ielts'
 import { loadSessions } from '../../lib/storage'
 import { computeGrowthComparison, type GrowthComparison } from '../../lib/growth'
+import { xpForSession, type Stats } from '../../lib/gamification'
 import { SessionFeedbackSummary } from '../session/SessionFeedbackReport'
+import { ReportCardModal } from '../gamification/ReportCardModal'
+import { Button } from '../../components/Button'
 
 interface ArchiveDetailProps {
   session: Session
+  stats: Stats
   onBack: () => void
 }
 
@@ -19,11 +23,12 @@ const TAG_LABELS: Record<string, string> = {
   nervous: 'Nervous',
 }
 
-export function ArchiveDetail({ session, onBack }: ArchiveDetailProps) {
+export function ArchiveDetail({ session, stats, onBack }: ArchiveDetailProps) {
   const categoryLabel = session.ieltsPart
     ? `IELTS ${ieltsPartLabel(session.ieltsPart)}`
     : (CATEGORIES.find((c) => c.id === session.category)?.label ?? session.category)
   const [comparison, setComparison] = useState<GrowthComparison | null>(null)
+  const [showReportCard, setShowReportCard] = useState(false)
 
   useEffect(() => {
     loadSessions().then((all) => setComparison(computeGrowthComparison(all, session)))
@@ -56,6 +61,7 @@ export function ArchiveDetail({ session, onBack }: ArchiveDetailProps) {
               ))}
             </div>
           )}
+          <Button onClick={() => setShowReportCard(true)}>Share result</Button>
         </div>
 
         {session.feedback && <SessionFeedbackSummary session={session} />}
@@ -88,6 +94,19 @@ export function ArchiveDetail({ session, onBack }: ArchiveDetailProps) {
           {session.content || <em>No content captured.</em>}
         </div>
       </div>
+
+      {showReportCard && (
+        <ReportCardModal
+          data={{
+            topic: session.topic,
+            mode: session.mode,
+            ieltsPart: session.ieltsPart,
+            xpEarned: xpForSession(session.durationMinutes),
+            streak: stats.streak,
+          }}
+          onClose={() => setShowReportCard(false)}
+        />
+      )}
     </motion.div>
   )
 }

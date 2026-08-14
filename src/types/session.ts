@@ -51,4 +51,5 @@ export interface Session {
   comments?: Comment[]
   feedback?: SessionFeedback
   verifiedUnaided?: boolean
+  isCustomTopic?: boolean
 }

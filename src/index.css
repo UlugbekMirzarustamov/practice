@@ -791,6 +791,10 @@ h3 {
   color: var(--danger);
 }
 
+.post-action.saved {
+  color: var(--accent-strong);
+}
+
 .post-comments {
   display: flex;
   flex-direction: column;
@@ -2586,6 +2590,223 @@ h3 {
   color: var(--text);
 }
 
+.guide-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+}
+
+.guide-card {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+  padding: 28px 26px 24px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: 0 30px 70px -24px rgba(0, 0, 0, 0.6);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.guide-skip {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.guide-skip:hover {
+  color: var(--text);
+}
+
+.guide-step-label {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--accent-strong);
+}
+
+.guide-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin: 0;
+}
+
+.guide-body {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0;
+}
+
+.guide-dots {
+  display: flex;
+  gap: 6px;
+  margin: 4px 0 8px;
+}
+
+.guide-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--border);
+}
+
+.guide-dot.active {
+  background: var(--accent);
+  width: 16px;
+  border-radius: 999px;
+  transition: width 0.25s ease;
+}
+
+.milestone-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.68);
+  backdrop-filter: blur(6px);
+  overflow: hidden;
+  cursor: pointer;
+}
+
+.milestone-confetti {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.milestone-confetti-piece {
+  position: absolute;
+  top: 0;
+  border-radius: 1px;
+}
+
+.milestone-card {
+  position: relative;
+  width: 100%;
+  max-width: 380px;
+  padding: 36px 28px 30px;
+  border-radius: 22px;
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, var(--border));
+  background: var(--bg-elevated);
+  box-shadow: 0 40px 90px -24px rgba(0, 0, 0, 0.65);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  cursor: default;
+}
+
+.milestone-badge {
+  font-size: 44px;
+  line-height: 1;
+  margin-bottom: 4px;
+}
+
+.milestone-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--accent-strong);
+}
+
+.milestone-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin: 0;
+}
+
+.milestone-body {
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.55;
+  margin: 0 0 8px;
+}
+
+.report-card-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(6px);
+}
+
+.report-card-modal {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  padding: 28px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: 0 40px 90px -24px rgba(0, 0, 0, 0.65);
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.report-card-close {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.report-card-close:hover {
+  color: var(--text);
+}
+
+.report-card-preview-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+
+.report-card-preview {
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  line-height: 0;
+}
+
+.report-card-canvas {
+  width: min(70vw, 300px);
+  height: auto;
+  display: block;
+}
+
 .leave-siren-overlay {
   display: flex;
   align-items: center;
@@ -3318,6 +3539,65 @@ h3 {
   flex-shrink: 0;
 }
 
+.save-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  background: transparent;
+  color: var(--text-faint);
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.save-icon-btn:hover {
+  color: var(--text);
+  background: var(--bg-elevated-2);
+}
+
+.save-icon-btn.active {
+  color: var(--accent-strong);
+}
+
+/* ---------- Trending topics ---------- */
+
+.trending-block {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.trending-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trending-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.trending-chip:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.trending-chip-count {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
 .public-session-badges {
   display: flex;
   align-items: center;
@@ -3839,6 +4119,19 @@ h3 {
   margin: 0;
   font-size: 13px;
   color: var(--text-muted);
+}
+
+.freeze-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--border));
+  background: color-mix(in srgb, var(--accent) 10%, var(--bg-elevated));
+  color: var(--accent-strong);
+  font-size: 12px;
+  font-weight: 600;
 }
 
 @media (max-width: 640px) {

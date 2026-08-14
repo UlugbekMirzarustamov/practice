@@ -37,6 +37,31 @@ export function playSettleChime(): void {
   tone(880, 0.28, 'sine', 0.045, 0.09)
 }
 
+/** Short, subtle arpeggio for a normal session completion. Plays every session — kept brief on purpose. */
+export function playCompleteChime(): void {
+  tone(523.25, 0.15, 'sine', 0.05)
+  tone(659.25, 0.15, 'sine', 0.045, 0.08)
+  tone(783.99, 0.26, 'sine', 0.05, 0.16)
+}
+
+/** Bigger, distinct fanfare for milestone unlocks — still under a second, just brighter and longer than the normal chime. */
+export function playMilestoneChime(): void {
+  tone(523.25, 0.12, 'sine', 0.055)
+  tone(659.25, 0.12, 'sine', 0.05, 0.09)
+  tone(783.99, 0.12, 'sine', 0.05, 0.18)
+  tone(1046.5, 0.4, 'sine', 0.06, 0.27)
+}
+
+/** Best-effort haptic tap. No-ops silently on browsers/devices without vibration support. */
+export function vibrate(pattern: number | number[]): void {
+  if (typeof navigator === 'undefined' || typeof navigator.vibrate !== 'function') return
+  try {
+    navigator.vibrate(pattern)
+  } catch {
+    // vibration blocked or unsupported; nothing to fall back to
+  }
+}
+
 let noiseBuffer: AudioBuffer | null = null
 
 function getNoiseBuffer(): AudioBuffer | null {

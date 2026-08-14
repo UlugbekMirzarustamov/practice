@@ -10,10 +10,20 @@ interface SettingsPageProps {
   onToggleTheme: () => void
   sidebarCollapsed: boolean
   onToggleSidebarCollapsed: () => void
+  soundEnabled: boolean
+  onToggleSound: () => void
   profile: Profile
 }
 
-export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleSidebarCollapsed, profile }: SettingsPageProps) {
+export function SettingsPage({
+  theme,
+  onToggleTheme,
+  sidebarCollapsed,
+  onToggleSidebarCollapsed,
+  soundEnabled,
+  onToggleSound,
+  profile,
+}: SettingsPageProps) {
   const { signOut } = useAuth()
   const [confirmingSignOut, setConfirmingSignOut] = useState(false)
 
@@ -74,6 +84,24 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
               </p>
             </div>
             <button type="button" className="switch" data-on={sidebarCollapsed} onClick={onToggleSidebarCollapsed}>
+              <span className="switch-thumb" />
+            </button>
+          </div>
+
+          <div className="settings-toggle-row">
+            <div>
+              <span className="options-panel-label">Sound effects</span>
+              <p className="option-hint" style={{ margin: 0 }}>
+                A short chime when a session completes, on by default.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="switch"
+              data-on={soundEnabled}
+              onClick={onToggleSound}
+              aria-label={soundEnabled ? 'Mute sound effects' : 'Unmute sound effects'}
+            >
               <span className="switch-thumb" />
             </button>
           </div>

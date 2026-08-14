@@ -8,6 +8,7 @@ import { updateSession } from '../../lib/storage'
 import { publicSessionUrl } from '../../lib/publicSession'
 import { StreakGrowth } from '../gamification/StreakGrowth'
 import { XpBar } from '../gamification/XpBar'
+import { ReportCardModal } from '../gamification/ReportCardModal'
 import { Button } from '../../components/Button'
 
 interface SessionCompleteProps {
@@ -30,6 +31,7 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
   const [published, setPublished] = useState<boolean | null>(null)
   const [textCopied, setTextCopied] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
+  const [showReportCard, setShowReportCard] = useState(false)
 
   const handleCopyText = async () => {
     try {
@@ -232,10 +234,20 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
           </motion.div>
         )}
 
-        <Button variant="primary" onClick={onDone}>
-          New session
-        </Button>
+        <div className="option-row" style={{ maxWidth: 320 }}>
+          <Button variant="primary" onClick={onDone}>
+            New session
+          </Button>
+          <Button onClick={() => setShowReportCard(true)}>Share result</Button>
+        </div>
       </div>
+
+      {showReportCard && (
+        <ReportCardModal
+          data={{ topic: session.topic, mode: session.mode, ieltsPart: session.ieltsPart, xpEarned: xpAwarded, streak: nextStats.streak }}
+          onClose={() => setShowReportCard(false)}
+        />
+      )}
     </motion.div>
   )
 }
