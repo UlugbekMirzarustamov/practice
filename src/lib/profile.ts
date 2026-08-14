@@ -42,9 +42,14 @@ export async function loadProfile(): Promise<Profile> {
   return rowToProfile(data as ProfileRow)
 }
 
+export interface ProfileUpdateError {
+  field: 'handle' | 'other'
+  message: string
+}
+
 export async function updateProfile(
-  patch: Partial<Pick<Profile, 'displayName' | 'bio' | 'avatarDataUrl'>>,
-): Promise<Profile> {
+  patch: Partial<Pick<Profile, 'displayName' | 'bio' | 'avatarDataUrl' | 'handle'>>,
+): Promise<{ profile: Profile | null; error: ProfileUpdateError | null }> {
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -54,10 +59,16 @@ export async function updateProfile(
   if (patch.displayName !== undefined) dbPatch.display_name = patch.displayName
   if (patch.bio !== undefined) dbPatch.bio = patch.bio
   if (patch.avatarDataUrl !== undefined) dbPatch.avatar_url = patch.avatarDataUrl
+  if (patch.handle !== undefined) dbPatch.handle = patch.handle
 
   const { data, error } = await supabase.from('profiles').update(dbPatch).eq('id', user.id).select().single()
-  if (error) throw error
-  return rowToProfile(data as ProfileRow)
+  if (error) {
+    if (error.code === '23505') {
+      return { profile: null, error: { field: 'handle', message: 'That username is already taken.' } }
+    }
+    return { profile: null, error: { field: 'other', message: error.message } }
+  }
+  return { profile: rowToProfile(data as ProfileRow), error: null }
 }
 
 export function initials(profile: Profile): string {

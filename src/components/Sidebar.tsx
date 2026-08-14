@@ -15,7 +15,7 @@ interface SidebarProps {
 
 const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }) => ReactElement }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-  { id: 'archive', label: 'Archive', icon: ArchiveIcon },
+  { id: 'archive', label: 'Writings', icon: ArchiveIcon },
   { id: 'leaderboard', label: 'Leaderboard', icon: LeaderboardIcon },
   { id: 'profile', label: 'Profile', icon: ProfileIcon },
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
@@ -30,8 +30,8 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
       transition={{ type: 'spring', stiffness: 340, damping: 32 }}
     >
       <div className="sidebar-top">
-        <span className="sidebar-logo">P</span>
-        {!collapsed && <span className="sidebar-wordmark">Practice</span>}
+        <span className="sidebar-logo">B</span>
+        {!collapsed && <span className="sidebar-wordmark">Bema</span>}
       </div>
 
       <nav className="sidebar-nav">

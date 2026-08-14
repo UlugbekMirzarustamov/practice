@@ -1,6 +1,6 @@
 import type { Category } from '../data/prompts'
 import type { Format } from '../types/flow'
-import type { Comment, IeltsCategoryId, Mode, RatingTag, Session } from '../types/session'
+import type { Comment, IeltsCategoryId, Mode, RatingTag, Session, SessionFeedback } from '../types/session'
 import type { IeltsPart } from '../data/ielts'
 import { supabase } from './supabaseClient'
 
@@ -18,6 +18,8 @@ interface SessionRow {
   published: boolean
   liked: boolean
   created_at: string
+  feedback: SessionFeedback | null
+  verified_unaided: boolean
 }
 
 interface CommentRow {
@@ -40,6 +42,8 @@ function rowToSession(row: SessionRow): Session {
     tags: (row.tags ?? []) as RatingTag[],
     published: row.published,
     liked: row.liked,
+    feedback: row.feedback ?? undefined,
+    verifiedUnaided: row.verified_unaided,
   }
 }
 
@@ -57,6 +61,8 @@ export interface NewSessionInput {
   topic: string
   durationMinutes: number
   content: string
+  feedback?: SessionFeedback
+  verifiedUnaided?: boolean
 }
 
 /** Inserts a session. id/createdAt/liked/published/tags are all assigned by the database. */
@@ -77,6 +83,8 @@ export async function createSession(input: NewSessionInput): Promise<Session> {
       topic: input.topic,
       duration_minutes: input.durationMinutes,
       content: input.content,
+      feedback: input.feedback ?? null,
+      verified_unaided: input.verifiedUnaided ?? false,
     })
     .select()
     .single()

@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom'
 import { motion, AnimatePresence } from 'motion/react'
 import type { Profile } from '../lib/profile'
 import { initials } from '../lib/profile'
+import { useAuth } from '../lib/auth'
 
 interface ProfileMenuProps {
   profile: Profile
@@ -11,7 +12,9 @@ interface ProfileMenuProps {
 }
 
 export function ProfileMenu({ profile, collapsed, onNavigate }: ProfileMenuProps) {
+  const { signOut } = useAuth()
   const [open, setOpen] = useState(false)
+  const [confirmingLogOut, setConfirmingLogOut] = useState(false)
   const [coords, setCoords] = useState<{ top: number; left: number } | null>(null)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const panelRef = useRef<HTMLDivElement>(null)
@@ -41,6 +44,7 @@ export function ProfileMenu({ profile, collapsed, onNavigate }: ProfileMenuProps
       setCoords({ top: rect.top, left: rect.left })
     }
     setOpen((o) => !o)
+    setConfirmingLogOut(false)
   }
 
   const go = (dest: 'profile' | 'settings') => {
@@ -52,7 +56,7 @@ export function ProfileMenu({ profile, collapsed, onNavigate }: ProfileMenuProps
     <div className="profile-menu">
       <button type="button" className="sidebar-profile" ref={triggerRef} onClick={toggleOpen} aria-expanded={open}>
         {profile.avatarDataUrl ? (
-          <img src={profile.avatarDataUrl} alt="" className="sidebar-avatar-img" />
+          <img src={profile.avatarDataUrl} alt={`${profile.displayName}'s avatar`} className="sidebar-avatar-img" />
         ) : (
           <span className="sidebar-avatar-fallback">{initials(profile)}</span>
         )}
@@ -97,16 +101,27 @@ export function ProfileMenu({ profile, collapsed, onNavigate }: ProfileMenuProps
 
                 <div className="profile-menu-sep" />
 
-                <button
-                  type="button"
-                  className="profile-menu-item destructive"
-                  role="menuitem"
-                  disabled
-                  title="No account system yet, this device is your only copy"
-                >
-                  <LogOutIcon />
-                  Log out
-                </button>
+                {!confirmingLogOut ? (
+                  <button
+                    type="button"
+                    className="profile-menu-item destructive"
+                    role="menuitem"
+                    onClick={() => setConfirmingLogOut(true)}
+                  >
+                    <LogOutIcon />
+                    Log out
+                  </button>
+                ) : (
+                  <div className="profile-menu-confirm">
+                    <span>Log out?</span>
+                    <button type="button" className="give-up-yes" onClick={() => signOut()}>
+                      Yes
+                    </button>
+                    <button type="button" className="give-up-no" onClick={() => setConfirmingLogOut(false)}>
+                      No
+                    </button>
+                  </div>
+                )}
               </motion.div>
             </div>
           )}

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { useAuth } from '../../lib/auth'
 import { loadLeaderboard, type LeaderboardEntry } from '../../lib/leaderboard'
+import { usePageMeta } from '../../lib/usePageMeta'
 
 function nameInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -11,6 +12,7 @@ function nameInitials(name: string): string {
 }
 
 export function LeaderboardPage() {
+  usePageMeta({ title: 'Leaderboard — Bema', description: 'A real, server-computed leaderboard. No seeded accounts, no invented rivals.' })
   const { user } = useAuth()
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null)
 
@@ -28,7 +30,7 @@ export function LeaderboardPage() {
     >
       <div className="page-inner" style={{ maxWidth: 640 }}>
         <h1 className="setup-title">Leaderboard</h1>
-        <p className="lede">Every real Practice user, ranked by all-time XP.</p>
+        <p className="lede">Every real Bema user, ranked by all-time XP.</p>
 
         {!entries ? (
           <p className="lede">Loading...</p>
@@ -54,7 +56,7 @@ function LeaderboardRow({ entry, rank, isYou }: { entry: LeaderboardEntry; rank:
     >
       <span className="leaderboard-rank tabular">#{rank}</span>
       {entry.avatarUrl ? (
-        <img src={entry.avatarUrl} alt="" className="leaderboard-avatar" />
+        <img src={entry.avatarUrl} alt={`${entry.displayName}'s avatar`} className="leaderboard-avatar" />
       ) : (
         <span className="leaderboard-avatar-fallback">{nameInitials(entry.displayName)}</span>
       )}

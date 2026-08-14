@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import type { RatingTag, Session } from '../../types/session'
 import { ieltsPartLabel } from '../../data/ielts'
 import type { Stats } from '../../lib/gamification'
 import { xpForSession } from '../../lib/gamification'
 import { updateSession } from '../../lib/storage'
+import { publicSessionUrl } from '../../lib/publicSession'
 import { StreakGrowth } from '../gamification/StreakGrowth'
 import { XpBar } from '../gamification/XpBar'
 import { Button } from '../../components/Button'
@@ -27,6 +28,28 @@ const RATING_TAGS: { id: RatingTag; label: string }[] = [
 export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, onDone }: SessionCompleteProps) {
   const [tags, setTags] = useState<RatingTag[]>([])
   const [published, setPublished] = useState<boolean | null>(null)
+  const [textCopied, setTextCopied] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
+
+  const handleCopyText = async () => {
+    try {
+      await navigator.clipboard.writeText(session.content)
+      setTextCopied(true)
+      setTimeout(() => setTextCopied(false), 1500)
+    } catch {
+      // clipboard permission denied or unavailable; silently no-op
+    }
+  }
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(publicSessionUrl(session.id))
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 1500)
+    } catch {
+      // clipboard permission denied or unavailable; silently no-op
+    }
+  }
   const wordCount = session.content.trim() ? session.content.trim().split(/\s+/).length : 0
   const xpAwarded = xpForSession(session.durationMinutes)
   const streakGrew = nextStats.streak > prevStats.streak
@@ -152,16 +175,50 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
               <span className="option-label">No</span>
             </button>
           </div>
-          {published === true && <p className="option-hint">Visible on your Posts tab. You can unpublish anytime.</p>}
+          {published === true && (
+            <div className="publish-link-row">
+              <p className="option-hint">Visible on your Posts tab. You can unpublish anytime.</p>
+              <button type="button" className="copy-text-btn" onClick={handleCopyLink}>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={linkCopied ? 'copied' : 'copy'}
+                    className="copy-text-btn-label"
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -3 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {linkCopied ? <CheckGlyph /> : <CopyGlyph />}
+                    {linkCopied ? 'Link copied' : 'Copy link'}
+                  </motion.span>
+                </AnimatePresence>
+              </button>
+            </div>
+          )}
         </motion.div>
 
-        <motion.div
-          className="content-preview"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.65, duration: 0.4 }}
-        >
-          {session.content || <em>No content captured.</em>}
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.65, duration: 0.4 }}>
+          <div className="content-preview-header">
+            <span className="field-label">{session.mode === 'speaking' ? 'Transcript' : 'What you wrote'}</span>
+            {session.content && (
+              <button type="button" className="copy-text-btn" onClick={handleCopyText}>
+                <AnimatePresence mode="wait" initial={false}>
+                  <motion.span
+                    key={textCopied ? 'copied' : 'copy'}
+                    className="copy-text-btn-label"
+                    initial={{ opacity: 0, y: 3 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -3 }}
+                    transition={{ duration: 0.18 }}
+                  >
+                    {textCopied ? <CheckGlyph /> : <CopyGlyph />}
+                    {textCopied ? 'Copied' : 'Copy'}
+                  </motion.span>
+                </AnimatePresence>
+              </button>
+            )}
+          </div>
+          <div className="content-preview">{session.content || <em>No content captured.</em>}</div>
         </motion.div>
 
         {wasFirstEver && (
@@ -171,10 +228,7 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.75, duration: 0.4 }}
           >
-            <span>Saved to this device. Your archive lives in this browser for now.</span>
-            <button type="button" className="text-link" title="Accounts are coming soon">
-              Create free account to sync →
-            </button>
+            <span>First one down. This is saved to your account and synced across every device you sign in on.</span>
           </motion.div>
         )}
 
@@ -183,5 +237,22 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
         </Button>
       </div>
     </motion.div>
+  )
+}
+
+function CopyGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="8" y="8" width="12" height="12" rx="2" />
+      <path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2" />
+    </svg>
+  )
+}
+
+function CheckGlyph() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12.5l4.5 4.5L19 7" />
+    </svg>
   )
 }

@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
-import type { Mode } from '../../types/session'
+import type { Mode, SessionFeedback } from '../../types/session'
 import type { IeltsPart } from '../../data/ielts'
 import { ieltsPartLabel, getRandomIeltsTopicGroup } from '../../data/ielts'
 import { useSessionTimer } from './useSessionTimer'
 import { useLeaveGuard } from './useLeaveGuard'
 import { useInactivityFail } from './useInactivityFail'
+import { useSpeakingTiming } from './useSpeakingTiming'
 import { useSpeechRecognition, isSpeechRecognitionSupported } from '../speaking/useSpeechRecognition'
 import { SessionOptionsPanel, EyeIcon, EyeOffIcon } from './SessionOptionsPanel'
-import { loadWritingPrefs, saveWritingPrefs, type WritingPrefs, type EditorFont } from '../../lib/writingPrefs'
+import { FormattingDock } from './FormattingDock'
+import { loadWritingPrefs, saveWritingPrefs, type WritingPrefs } from '../../lib/writingPrefs'
 import { playKeystroke, startAmbient, stopAmbient } from '../../lib/sound'
+import { analyzeSpeakingFeedback, analyzeWritingFeedback } from '../../lib/sessionAnalysis'
 
 interface SessionLockProps {
   mode: Mode
@@ -22,23 +25,14 @@ interface SessionLockProps {
   ieltsTopicLabel?: string
   initialContent?: string
   initialSecondsLeft?: number
-  onComplete: (content: string) => void
+  onComplete: (content: string, feedback: SessionFeedback, verifiedUnaided: boolean) => void
   onFail: () => void
   onPause: (content: string, secondsLeft: number, ieltsQuestions?: string[], ieltsTopicLabel?: string) => void
   onLeaveNeutral: () => void
+  disablePause?: boolean
+  /** Called instead of an autosave-via-onPause when the leave grace period runs out. */
+  onLeaveTimeout?: (content: string) => void
 }
-
-const FONT_CLASS: Record<WritingPrefs['font'], string> = {
-  sans: '',
-  serif: 'font-serif',
-  mono: 'font-mono-editor',
-}
-
-const FONT_OPTIONS: { id: EditorFont; label: string }[] = [
-  { id: 'sans', label: 'Sans' },
-  { id: 'serif', label: 'Serif' },
-  { id: 'mono', label: 'Mono' },
-]
 
 const isSequentialIelts = (ielts?: IeltsPart) => ielts === 'part1' || ielts === 'part3'
 
@@ -57,23 +51,58 @@ export function SessionLock({
   onFail,
   onPause,
   onLeaveNeutral,
+  disablePause,
+  onLeaveTimeout,
 }: SessionLockProps) {
   const [content, setContent] = useState(initialContent ?? '')
   const [activeConfirm, setActiveConfirm] = useState<'give-up' | 'finish' | 'pause' | 'change-part' | null>(null)
   const [optionsOpen, setOptionsOpen] = useState(false)
+  const [isFullscreen, setIsFullscreen] = useState(false)
   const [prefs, setPrefs] = useState<WritingPrefs>(() => loadWritingPrefs())
-  const [formats, setFormats] = useState({ bold: false, italic: false, underline: false })
   const [liveTopicLabel, setLiveTopicLabel] = useState(ieltsTopicLabel ?? topic)
   const [liveQuestions, setLiveQuestions] = useState(ieltsQuestions)
   const [questionIndex, setQuestionIndex] = useState(0)
   const editorRef = useRef<HTMLDivElement>(null)
   const editorInitialized = useRef(false)
-  const { transcript, listening } = useSpeechRecognition(mode === 'speaking')
+  const pastedRef = useRef(false)
+  const { transcript, listening, hasRecognized } = useSpeechRecognition(mode === 'speaking')
+  const { getSilenceSeconds } = useSpeakingTiming(mode === 'speaking', transcript)
 
   const finalContent = mode === 'speaking' ? transcript : content
 
-  const { formatted, progress, secondsLeft } = useSessionTimer(durationMinutes, () => onComplete(finalContent), initialSecondsLeft)
-  useLeaveGuard(true, onFail)
+  const buildCompletionPayload = (contentAtCompletion: string, secondsLeftAtCompletion: number): { feedback: SessionFeedback; verifiedUnaided: boolean } => {
+    const elapsed = durationMinutes * 60 - secondsLeftAtCompletion
+    if (mode === 'speaking') {
+      return {
+        feedback: analyzeSpeakingFeedback(contentAtCompletion, elapsed, getSilenceSeconds()),
+        verifiedUnaided: hasRecognized && contentAtCompletion.trim().length > 0,
+      }
+    }
+    return {
+      feedback: analyzeWritingFeedback(contentAtCompletion),
+      verifiedUnaided: !pastedRef.current && contentAtCompletion.trim().length > 0,
+    }
+  }
+
+  const { formatted, progress, secondsLeft } = useSessionTimer(
+    durationMinutes,
+    () => {
+      const { feedback, verifiedUnaided } = buildCompletionPayload(finalContent, 0)
+      onComplete(finalContent, feedback, verifiedUnaided)
+    },
+    initialSecondsLeft,
+  )
+  const sequential = isSequentialIelts(ielts) && !!liveQuestions
+
+  const handleLeaveTimeout = () => {
+    if (onLeaveTimeout) {
+      onLeaveTimeout(finalContent)
+    } else {
+      onPause(finalContent, secondsLeft, sequential ? liveQuestions : undefined, sequential ? liveTopicLabel : undefined)
+    }
+  }
+
+  const { secondsRemaining: leaveSecondsRemaining } = useLeaveGuard(true, handleLeaveTimeout)
   const { silentSeconds } = useInactivityFail(dangerEnabled, dangerSeconds, finalContent, onFail)
 
   useEffect(() => {
@@ -83,26 +112,29 @@ export function SessionLock({
   }, [])
 
   useEffect(() => {
+    const handleFullscreenChange = () => setIsFullscreen(Boolean(document.fullscreenElement))
+    document.addEventListener('fullscreenchange', handleFullscreenChange)
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange)
+      if (document.fullscreenElement) void document.exitFullscreen()
+    }
+  }, [])
+
+  const toggleFullscreen = () => {
+    if (document.fullscreenElement) {
+      void document.exitFullscreen()
+    } else {
+      void document.documentElement.requestFullscreen().catch(() => {})
+    }
+  }
+
+  useEffect(() => {
     if (editorRef.current && !editorInitialized.current) {
       editorRef.current.innerText = initialContent ?? ''
       editorInitialized.current = true
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
-
-  useEffect(() => {
-    if (mode !== 'writing') return
-    const update = () => {
-      if (document.activeElement !== editorRef.current) return
-      setFormats({
-        bold: document.queryCommandState('bold'),
-        italic: document.queryCommandState('italic'),
-        underline: document.queryCommandState('underline'),
-      })
-    }
-    document.addEventListener('selectionchange', update)
-    return () => document.removeEventListener('selectionchange', update)
-  }, [mode])
 
   const updatePrefs = (patch: Partial<WritingPrefs>) => {
     const next = { ...prefs, ...patch }
@@ -114,16 +146,6 @@ export function SessionLock({
     const text = editorRef.current?.innerText ?? ''
     setContent(text)
     if (prefs.typingSoundEnabled) playKeystroke(prefs.typingSoundStyle)
-  }
-
-  const exec = (command: string) => {
-    document.execCommand(command)
-    editorRef.current?.focus()
-    setFormats({
-      bold: document.queryCommandState('bold'),
-      italic: document.queryCommandState('italic'),
-      underline: document.queryCommandState('underline'),
-    })
   }
 
   const handleNextQuestion = () => {
@@ -141,7 +163,8 @@ export function SessionLock({
 
   const handleFinishNow = () => {
     setActiveConfirm(null)
-    onComplete(finalContent)
+    const { feedback, verifiedUnaided } = buildCompletionPayload(finalContent, secondsLeft)
+    onComplete(finalContent, feedback, verifiedUnaided)
   }
 
   const handleSavePause = () => {
@@ -159,7 +182,6 @@ export function SessionLock({
   const elapsedSeconds = durationMinutes * 60 - secondsLeft
   const wordCount = finalContent.trim() ? finalContent.trim().split(/\s+/).length : 0
   const wpm = elapsedSeconds >= 4 ? Math.round(wordCount / (elapsedSeconds / 60)) : null
-  const sequential = isSequentialIelts(ielts) && !!liveQuestions
 
   return (
     <motion.div
@@ -169,6 +191,24 @@ export function SessionLock({
       exit={{ opacity: 0 }}
       transition={{ duration: 0.4 }}
     >
+      <AnimatePresence>
+        {leaveSecondsRemaining !== null && (
+          <motion.div
+            className={['leave-siren-overlay', leaveSecondsRemaining <= 3 ? 'leave-siren-critical' : ''].filter(Boolean).join(' ')}
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.25 }}
+          >
+            <span className="leave-siren-light" />
+            <span className="leave-siren-text tabular">
+              Come back in {Math.ceil(leaveSecondsRemaining)}s or this session gets saved
+              {onLeaveTimeout ? ' — you will need to sign up to keep writing' : ' as a draft'}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <div className="lock-header">
         <div className="lock-header-left">
           <span className="mode-badge">{ielts ? `IELTS ${ieltsPartLabel(ielts)}` : mode === 'writing' ? 'Writing session' : 'Speaking session'}</span>
@@ -180,6 +220,14 @@ export function SessionLock({
         </div>
 
         <div className="lock-header-right">
+          <button
+            type="button"
+            className="eye-icon-btn"
+            onClick={toggleFullscreen}
+            title={isFullscreen ? 'Exit full screen' : 'Enter full screen'}
+          >
+            {isFullscreen ? <CompressIcon /> : <ExpandIcon />}
+          </button>
           <button type="button" className="eye-icon-btn" onClick={() => updatePrefs({ showTimer: !prefs.showTimer })}>
             {prefs.showTimer ? <EyeIcon /> : <EyeOffIcon />}
           </button>
@@ -209,16 +257,18 @@ export function SessionLock({
             variant="positive"
           />
 
-          <ExitControl
-            id="pause"
-            label="Save & pause"
-            confirmLabel="Save your progress and come back later?"
-            active={activeConfirm === 'pause'}
-            onOpen={() => setActiveConfirm('pause')}
-            onCancel={() => setActiveConfirm(null)}
-            onConfirm={handleSavePause}
-            variant="neutral"
-          />
+          {!disablePause && (
+            <ExitControl
+              id="pause"
+              label="Save & pause"
+              confirmLabel="Save your progress and come back later?"
+              active={activeConfirm === 'pause'}
+              onOpen={() => setActiveConfirm('pause')}
+              onCancel={() => setActiveConfirm(null)}
+              onConfirm={handleSavePause}
+              variant="neutral"
+            />
+          )}
 
           <ExitControl
             id="give-up"
@@ -241,70 +291,6 @@ export function SessionLock({
           transition={{ duration: 0.25, ease: 'linear' }}
         />
       </div>
-
-      {mode === 'writing' && (
-        <div className="editor-toolbar">
-          <div className="chip-row toolbar-fonts">
-            {FONT_OPTIONS.map((f) => (
-              <button
-                key={f.id}
-                type="button"
-                className={['chip', prefs.font === f.id ? 'selected' : ''].filter(Boolean).join(' ')}
-                onClick={() => updatePrefs({ font: f.id })}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-          <div className="toolbar-divider" />
-          <div className="toolbar-size">
-            <button
-              type="button"
-              className="toolbar-btn"
-              title="Smaller text"
-              onClick={() => updatePrefs({ fontSize: Math.max(14, prefs.fontSize - 1) })}
-            >
-              −
-            </button>
-            <span className="toolbar-size-value tabular">{prefs.fontSize}px</span>
-            <button
-              type="button"
-              className="toolbar-btn"
-              title="Larger text"
-              onClick={() => updatePrefs({ fontSize: Math.min(30, prefs.fontSize + 1) })}
-            >
-              +
-            </button>
-          </div>
-          <div className="toolbar-divider" />
-          <div className="toolbar-format">
-            <button
-              type="button"
-              className={['toolbar-btn', 'format-btn', formats.bold ? 'active' : ''].filter(Boolean).join(' ')}
-              title="Bold"
-              onClick={() => exec('bold')}
-            >
-              <b>B</b>
-            </button>
-            <button
-              type="button"
-              className={['toolbar-btn', 'format-btn', formats.italic ? 'active' : ''].filter(Boolean).join(' ')}
-              title="Italic"
-              onClick={() => exec('italic')}
-            >
-              <i>I</i>
-            </button>
-            <button
-              type="button"
-              className={['toolbar-btn', 'format-btn', formats.underline ? 'active' : ''].filter(Boolean).join(' ')}
-              title="Underline"
-              onClick={() => exec('underline')}
-            >
-              <u>U</u>
-            </button>
-          </div>
-        </div>
-      )}
 
       {sequential ? (
         <div className="ielts-sequential">
@@ -359,10 +345,13 @@ export function SessionLock({
       {mode === 'writing' ? (
         <div
           ref={editorRef}
-          className={['lock-editor', FONT_CLASS[prefs.font]].filter(Boolean).join(' ')}
+          className="lock-editor"
           contentEditable
           suppressContentEditableWarning
           onInput={handleEditorInput}
+          onPaste={() => {
+            pastedRef.current = true
+          }}
           style={{ fontSize: prefs.fontSize }}
           data-placeholder="Start writing..."
           autoFocus
@@ -371,6 +360,8 @@ export function SessionLock({
       ) : (
         <SpeakingPanel listening={listening} silentSeconds={silentSeconds} dangerSeconds={dangerSeconds} />
       )}
+
+      {mode === 'writing' && <FormattingDock editorRef={editorRef} />}
 
       <div className="lock-footer">
         <span className="tabular">{wordCount} words</span>
@@ -501,6 +492,34 @@ function SpeakingPanel({
         )}
       </AnimatePresence>
     </div>
+  )
+}
+
+function ExpandIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M7.5 2.5H2.5V7.5M12.5 2.5H17.5V7.5M7.5 17.5H2.5V12.5M12.5 17.5H17.5V12.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  )
+}
+
+function CompressIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M2.5 7.5H7.5V2.5M17.5 7.5H12.5V2.5M2.5 12.5H7.5V17.5M17.5 12.5H12.5V17.5"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
   )
 }
 

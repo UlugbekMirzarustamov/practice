@@ -6,6 +6,7 @@ import { loadStats, type Stats } from '../../lib/gamification'
 import { computeAchievements, CATEGORY_LABELS, type AchievementCategory } from '../../lib/achievements'
 import { loadProfile, updateProfile, initials, type Profile } from '../../lib/profile'
 import { Button } from '../../components/Button'
+import { usePageMeta } from '../../lib/usePageMeta'
 
 type Tab = 'about' | 'posts'
 
@@ -19,19 +20,24 @@ function formatMinutes(minutes: number): string {
 }
 
 export function ProfilePage() {
+  usePageMeta({ title: 'Your Profile — Bema', description: 'Your stats, achievements, and published sessions.' })
   const [profile, setProfile] = useState<Profile | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])
   const [tab, setTab] = useState<Tab>('about')
   const [editing, setEditing] = useState(false)
   const [draftName, setDraftName] = useState('')
+  const [draftHandle, setDraftHandle] = useState('')
   const [draftBio, setDraftBio] = useState('')
+  const [saveError, setSaveError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const refresh = () => {
     loadProfile().then((p) => {
       setProfile(p)
       setDraftName(p.displayName)
+      setDraftHandle(p.handle)
       setDraftBio(p.bio)
     })
     loadStats().then(setStats)
@@ -54,15 +60,34 @@ export function ProfilePage() {
   const published = sessions.filter((s) => s.published).sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   const unlockedCount = achievements.filter((a) => a.unlocked).length
 
+  const normalizedHandle = draftHandle.trim().toLowerCase().replace(/[^a-z0-9_]/g, '')
+
   const handleSave = async () => {
-    await updateProfile({ displayName: draftName.trim() || profile.handle, bio: draftBio })
+    setSaveError(null)
+    if (normalizedHandle.length < 3) {
+      setSaveError('Username needs to be at least 3 characters (letters, numbers, underscore only).')
+      return
+    }
+    setSaving(true)
+    const { error } = await updateProfile({
+      displayName: draftName.trim() || profile.handle,
+      handle: normalizedHandle,
+      bio: draftBio,
+    })
+    setSaving(false)
+    if (error) {
+      setSaveError(error.message)
+      return
+    }
     refresh()
     setEditing(false)
   }
 
   const handleCancel = () => {
     setDraftName(profile.displayName)
+    setDraftHandle(profile.handle)
     setDraftBio(profile.bio)
+    setSaveError(null)
     setEditing(false)
   }
 
@@ -88,7 +113,7 @@ export function ProfilePage() {
         <div className="profile-header">
           <div className="profile-avatar-wrap">
             {profile.avatarDataUrl ? (
-              <img src={profile.avatarDataUrl} alt="" className="profile-avatar" />
+              <img src={profile.avatarDataUrl} alt={`${profile.displayName}'s avatar`} className="profile-avatar" />
             ) : (
               <div className="profile-avatar profile-avatar-fallback">{initials(profile)}</div>
             )}
@@ -99,48 +124,76 @@ export function ProfilePage() {
           </div>
 
           <div className="profile-identity">
-            {editing ? (
-              <input
-                className="search-input"
-                value={draftName}
-                onChange={(e) => setDraftName(e.target.value)}
-                placeholder="Display name"
-              />
-            ) : (
-              <h1 className="setup-title">{profile.displayName}</h1>
-            )}
+            <h1 className="setup-title">{profile.displayName}</h1>
             <span className="profile-handle tabular">@{profile.handle}</span>
             <span className="lede tabular">
               Member since {new Date(profile.memberSince).toLocaleDateString()} · Level {stats.level.level} ·{' '}
               {stats.totalXp} XP
             </span>
+            {profile.bio && <p className="lede">{profile.bio}</p>}
 
-            {editing ? (
-              <textarea
-                className="lock-editor profile-bio-edit"
-                value={draftBio}
-                onChange={(e) => setDraftBio(e.target.value)}
-                placeholder="A short bio..."
-                rows={2}
-              />
-            ) : (
-              profile.bio && <p className="lede">{profile.bio}</p>
-            )}
-
-            {editing ? (
-              <div className="option-row" style={{ maxWidth: 220 }}>
-                <Button variant="primary" onClick={handleSave}>
-                  Save
-                </Button>
-                <Button onClick={handleCancel}>Cancel</Button>
-              </div>
-            ) : (
+            {!editing && (
               <button type="button" className="text-link" style={{ alignSelf: 'flex-start' }} onClick={() => setEditing(true)}>
                 Edit profile
               </button>
             )}
           </div>
         </div>
+
+        {editing && (
+          <div className="settings-card">
+            <div className="settings-card-title">Edit profile</div>
+
+            <div className="field">
+              <span className="field-label">Display name</span>
+              <input
+                className="search-input"
+                value={draftName}
+                onChange={(e) => setDraftName(e.target.value)}
+                placeholder="Display name"
+              />
+            </div>
+
+            <div className="field">
+              <span className="field-label">Username</span>
+              <div className="username-edit-row">
+                <span className="username-at">@</span>
+                <input
+                  className="search-input"
+                  value={draftHandle}
+                  onChange={(e) => setDraftHandle(e.target.value)}
+                  placeholder="username"
+                  maxLength={24}
+                />
+              </div>
+              <p className="option-hint" style={{ margin: 0 }}>
+                Lowercase letters, numbers, and underscores only. This is how others find you.
+              </p>
+            </div>
+
+            <div className="field">
+              <span className="field-label">Bio</span>
+              <textarea
+                className="lock-editor profile-bio-edit"
+                value={draftBio}
+                onChange={(e) => setDraftBio(e.target.value)}
+                placeholder="A short bio..."
+                rows={3}
+              />
+            </div>
+
+            {saveError && <p className="auth-message auth-error">{saveError}</p>}
+
+            <div className="option-row" style={{ maxWidth: 240 }}>
+              <Button variant="primary" onClick={handleSave} disabled={saving}>
+                {saving ? 'Saving...' : 'Save changes'}
+              </Button>
+              <Button onClick={handleCancel} disabled={saving}>
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
 
         <div className="profile-stats-bar">
           <ProfileStat label="Total words" value={stats.totalWords.toLocaleString()} />

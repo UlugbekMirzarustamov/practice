@@ -5,6 +5,7 @@ import { CATEGORIES } from '../../data/prompts'
 import { ieltsPartLabel } from '../../data/ielts'
 import { loadSessions } from '../../lib/storage'
 import { computeGrowthComparison, type GrowthComparison } from '../../lib/growth'
+import { SessionFeedbackSummary } from '../session/SessionFeedbackReport'
 
 interface ArchiveDetailProps {
   session: Session
@@ -56,6 +57,8 @@ export function ArchiveDetail({ session, onBack }: ArchiveDetailProps) {
             </div>
           )}
         </div>
+
+        {session.feedback && <SessionFeedbackSummary session={session} />}
 
         {comparison && (
           <div className="growth-card">

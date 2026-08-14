@@ -36,7 +36,7 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
           <div className="settings-card-title">Account</div>
           <div className="settings-profile-row">
             {profile.avatarDataUrl ? (
-              <img src={profile.avatarDataUrl} alt="" className="settings-avatar" />
+              <img src={profile.avatarDataUrl} alt={`${profile.displayName}'s avatar`} className="settings-avatar" />
             ) : (
               <div className="settings-avatar settings-avatar-fallback">{initials(profile)}</div>
             )}
@@ -51,31 +51,26 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
 
         <div className="settings-card">
           <div className="settings-card-title">Appearance</div>
-          <div className="field">
+          <div className="settings-toggle-row">
             <span className="field-label">Theme</span>
-            <div className="option-row">
-              <button
-                type="button"
-                className={['option', theme === 'dark' ? 'selected' : ''].filter(Boolean).join(' ')}
-                onClick={() => theme !== 'dark' && onToggleTheme()}
-              >
-                <span className="option-label">Dark</span>
-              </button>
-              <button
-                type="button"
-                className={['option', theme === 'light' ? 'selected' : ''].filter(Boolean).join(' ')}
-                onClick={() => theme !== 'light' && onToggleTheme()}
-              >
-                <span className="option-label">Light</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              className="switch"
+              data-on={theme === 'light'}
+              onClick={onToggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              <MoonIcon className="switch-icon switch-icon-off" />
+              <SunIcon className="switch-icon switch-icon-on" />
+              <span className="switch-thumb" />
+            </button>
           </div>
 
           <div className="settings-toggle-row">
             <div>
               <span className="options-panel-label">Collapse sidebar by default</span>
               <p className="option-hint" style={{ margin: 0 }}>
-                Applies the next time you open Practice.
+                Applies the next time you open Bema.
               </p>
             </div>
             <button type="button" className="switch" data-on={sidebarCollapsed} onClick={onToggleSidebarCollapsed}>
@@ -86,7 +81,7 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
 
         <div className="settings-card settings-card-danger">
           <div className="settings-card-title">Account</div>
-          <p className="option-hint">Sign out of Practice on this device. Your data stays in your account.</p>
+          <p className="option-hint">Sign out of Bema on this device. Your data stays in your account.</p>
           {!confirmingSignOut ? (
             <button type="button" className="text-link give-up" onClick={() => setConfirmingSignOut(true)}>
               Sign out
@@ -105,6 +100,25 @@ export function SettingsPage({ theme, onToggleTheme, sidebarCollapsed, onToggleS
         </div>
       </div>
     </motion.div>
+  )
+}
+
+function MoonIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none">
+      <path d="M15.5 12.3A6 6 0 018 4.8a.5.5 0 00-.7-.5 7 7 0 108.4 8.4.5.5 0 00-.2-.4z" fill="currentColor" />
+    </svg>
+  )
+}
+
+function SunIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 20 20" fill="none">
+      <circle cx="10" cy="10" r="4" fill="currentColor" />
+      <g stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+        <path d="M10 1.5v2M10 16.5v2M18.5 10h-2M3.5 10h-2M15.8 4.2l-1.4 1.4M5.6 14.4l-1.4 1.4M15.8 15.8l-1.4-1.4M5.6 5.6L4.2 4.2" />
+      </g>
+    </svg>
   )
 }
 

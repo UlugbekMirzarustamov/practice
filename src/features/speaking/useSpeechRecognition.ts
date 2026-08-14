@@ -12,6 +12,8 @@ export function isSpeechRecognitionSupported(): boolean {
 interface UseSpeechRecognitionResult {
   transcript: string
   listening: boolean
+  /** True once the browser has delivered at least one live recognition result. */
+  hasRecognized: boolean
 }
 
 /**
@@ -22,6 +24,7 @@ interface UseSpeechRecognitionResult {
 export function useSpeechRecognition(active: boolean): UseSpeechRecognitionResult {
   const [transcript, setTranscript] = useState('')
   const [listening, setListening] = useState(false)
+  const [hasRecognized, setHasRecognized] = useState(false)
   const finalTranscriptRef = useRef('')
 
   useEffect(() => {
@@ -29,6 +32,7 @@ export function useSpeechRecognition(active: boolean): UseSpeechRecognitionResul
     const Ctor = getSpeechRecognitionCtor()
     if (!Ctor) return
 
+    setHasRecognized(false)
     let stopped = false
     const recognition = new Ctor()
     recognition.continuous = true
@@ -46,6 +50,7 @@ export function useSpeechRecognition(active: boolean): UseSpeechRecognitionResul
         }
       }
       setTranscript(finalTranscriptRef.current + interim)
+      setHasRecognized(true)
     }
 
     recognition.onerror = () => {
@@ -75,5 +80,5 @@ export function useSpeechRecognition(active: boolean): UseSpeechRecognitionResul
     }
   }, [active])
 
-  return { transcript, listening }
+  return { transcript, listening, hasRecognized }
 }

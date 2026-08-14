@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence } from 'motion/react'
 import { ScrollProgress } from './components/ScrollProgress'
-import type { Mode, Session } from './types/session'
+import type { Mode, Session, SessionFeedback } from './types/session'
 import type { Category } from './data/prompts'
 import type { Format } from './types/flow'
 import type { IeltsPart } from './data/ielts'
@@ -13,13 +13,20 @@ import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/
 import { loadStats, type Stats } from './lib/gamification'
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
 import { loadProfile, type Profile } from './lib/profile'
+import { primeAudio } from './lib/sound'
 import { useAuth } from './lib/auth'
 import { AuthPage } from './features/auth/AuthPage'
+import { LandingPage } from './features/landing/LandingPage'
+import { TrialPicker, TrialComplete, TrialFailed } from './features/landing/TrialFlow'
+import { PublicSessionPage } from './features/share/PublicSessionPage'
+import { PrivacyPolicyPage } from './features/share/PrivacyPolicyPage'
+import { NotFoundPage } from './features/share/NotFoundPage'
 import { Sidebar, type SidebarDest } from './components/Sidebar'
 import { SessionSetup } from './features/session/SessionSetup'
 import { TopicReveal, type StartOptions } from './features/session/TopicReveal'
 import { ResearchPhase } from './features/session/ResearchPhase'
 import { SessionLock } from './features/session/SessionLock'
+import { SessionFeedbackReport } from './features/session/SessionFeedbackReport'
 import { SessionComplete } from './features/session/SessionComplete'
 import { SessionFailed } from './features/session/SessionFailed'
 import { ArchiveList } from './features/archive/ArchiveList'
@@ -70,6 +77,7 @@ type Screen =
       initialContent?: string
       initialSecondsLeft?: number
     }
+  | { name: 'feedback'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
   | { name: 'complete'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
   | { name: 'failed' }
   | { name: 'archive' }
@@ -96,7 +104,7 @@ function LoadingScreen() {
       <div className="app-main">
         <div className="page">
           <div className="page-inner">
-            <span className="wordmark">Practice</span>
+            <span className="wordmark">Bema</span>
             <p className="lede">Loading...</p>
           </div>
         </div>
@@ -226,7 +234,7 @@ function AuthenticatedApp() {
     })
   }
 
-  const handleComplete = async (content: string) => {
+  const handleComplete = async (content: string, feedback: SessionFeedback, verifiedUnaided: boolean) => {
     if (screen.name !== 'locked') return
     await clearDraft()
     setDraft(null)
@@ -241,10 +249,12 @@ function AuthenticatedApp() {
       topic: screen.topic,
       durationMinutes: screen.durationMinutes,
       content,
+      feedback,
+      verifiedUnaided,
     })
 
     const nextStats = await refreshStats()
-    setScreen({ name: 'complete', session, prevStats, nextStats, wasFirstEver })
+    setScreen({ name: 'feedback', session, prevStats, nextStats, wasFirstEver })
   }
 
   const handleFail = async () => {
@@ -332,15 +342,7 @@ function AuthenticatedApp() {
         <ScrollProgress containerRef={mainRef} />
         <AnimatePresence mode="wait">
           {screen.name === 'setup' && (
-            <SessionSetup
-              key="setup"
-              stats={stats}
-              draft={draft}
-              onStart={handlePickTopic}
-              onStartIelts={handlePickIelts}
-              onResumeDraft={handleResumeDraft}
-              onDiscardDraft={handleDiscardDraft}
-            />
+            <SessionSetup key="setup" stats={stats} onStart={handlePickTopic} onStartIelts={handlePickIelts} />
           )}
 
           {screen.name === 'revealing' && (
@@ -388,6 +390,22 @@ function AuthenticatedApp() {
             />
           )}
 
+          {screen.name === 'feedback' && (
+            <SessionFeedbackReport
+              key="feedback"
+              session={screen.session}
+              onContinue={() =>
+                setScreen({
+                  name: 'complete',
+                  session: screen.session,
+                  prevStats: screen.prevStats,
+                  nextStats: screen.nextStats,
+                  wasFirstEver: screen.wasFirstEver,
+                })
+              }
+            />
+          )}
+
           {screen.name === 'complete' && (
             <SessionComplete
               key="complete"
@@ -402,7 +420,13 @@ function AuthenticatedApp() {
           {screen.name === 'failed' && <SessionFailed key="failed" onDone={handleReset} />}
 
           {screen.name === 'archive' && (
-            <ArchiveList key="archive" onSelect={(session) => setScreen({ name: 'archiveDetail', session })} />
+            <ArchiveList
+              key="archive"
+              draft={draft}
+              onResumeDraft={handleResumeDraft}
+              onDiscardDraft={handleDiscardDraft}
+              onSelect={(session) => setScreen({ name: 'archiveDetail', session })}
+            />
           )}
 
           {screen.name === 'archiveDetail' && <ArchiveDetail key="archiveDetail" session={screen.session} onBack={goArchive} />}
@@ -429,12 +453,109 @@ function AuthenticatedApp() {
   )
 }
 
+type PublicView =
+  | { name: 'landing' }
+  | { name: 'auth' }
+  | { name: 'trialPicker' }
+  | { name: 'trialActive'; mode: Mode; topic: string }
+  | { name: 'trialComplete'; mode: Mode; topic: string; content: string }
+  | { name: 'trialFailed'; mode?: Mode; topic?: string; content?: string }
+
 function App() {
   const { user, loading } = useAuth()
+  const [publicView, setPublicView] = useState<PublicView>({ name: 'landing' })
+
+  const pathname = window.location.pathname
+  const goHomePath = () => {
+    window.history.pushState({}, '', '/')
+    setPublicView({ name: 'landing' })
+  }
+
+  const shareMatch = pathname.match(/^\/s\/([^/]+)$/)
+  if (shareMatch) {
+    return (
+      <PublicSessionPage
+        sessionId={shareMatch[1]}
+        onTryFree={() => {
+          window.history.pushState({}, '', '/')
+          setPublicView({ name: 'trialPicker' })
+        }}
+      />
+    )
+  }
+
+  if (pathname === '/privacy') {
+    return <PrivacyPolicyPage onHome={goHomePath} />
+  }
+
+  if (pathname !== '/') {
+    return <NotFoundPage onHome={goHomePath} />
+  }
 
   if (loading) return <LoadingScreen />
-  if (!user) return <AuthPage />
-  return <AuthenticatedApp />
+  if (user) return <AuthenticatedApp />
+
+  const goLanding = () => setPublicView({ name: 'landing' })
+
+  if (publicView.name === 'auth') return <AuthPage />
+
+  if (publicView.name === 'trialPicker') {
+    return (
+      <TrialPicker
+        onPick={(mode) => {
+          primeAudio()
+          setPublicView({ name: 'trialActive', mode, topic: getRandomPrompt('general') })
+        }}
+        onBack={goLanding}
+      />
+    )
+  }
+
+  if (publicView.name === 'trialActive') {
+    const { mode, topic } = publicView
+    return (
+      <SessionLock
+        mode={mode}
+        topic={topic}
+        durationMinutes={3}
+        dangerEnabled={false}
+        dangerSeconds={30}
+        disablePause
+        onComplete={(content) => setPublicView({ name: 'trialComplete', mode, topic, content })}
+        onFail={() => setPublicView({ name: 'trialFailed' })}
+        onPause={() => {}}
+        onLeaveNeutral={goLanding}
+        onLeaveTimeout={(content) => setPublicView({ name: 'trialFailed', mode, topic, content })}
+      />
+    )
+  }
+
+  if (publicView.name === 'trialComplete') {
+    return (
+      <TrialComplete
+        mode={publicView.mode}
+        topic={publicView.topic}
+        content={publicView.content}
+        onSignUp={() => setPublicView({ name: 'auth' })}
+        onBack={goLanding}
+      />
+    )
+  }
+
+  if (publicView.name === 'trialFailed') {
+    return (
+      <TrialFailed
+        mode={publicView.mode}
+        topic={publicView.topic}
+        content={publicView.content}
+        onRetry={() => setPublicView({ name: 'trialPicker' })}
+        onSignUp={() => setPublicView({ name: 'auth' })}
+        onBack={goLanding}
+      />
+    )
+  }
+
+  return <LandingPage onEnter={() => setPublicView({ name: 'auth' })} onTryFree={() => setPublicView({ name: 'trialPicker' })} />
 }
 
 export default App

@@ -2,12 +2,24 @@ import { useState, type FormEvent } from 'react'
 import { motion } from 'motion/react'
 import { useAuth } from '../../lib/auth'
 import { Button } from '../../components/Button'
+import { InteractiveButton } from '../../components/InteractiveButton'
+import { usePageMeta } from '../../lib/usePageMeta'
 
 type Mode = 'sign-in' | 'sign-up' | 'forgot'
+
+const MODE_TITLES: Record<Mode, string> = {
+  'sign-in': 'Sign in — Bema',
+  'sign-up': 'Create your account — Bema',
+  forgot: 'Reset your password — Bema',
+}
 
 export function AuthPage() {
   const { signIn, signUp, signInWithGoogle, resetPassword } = useAuth()
   const [mode, setMode] = useState<Mode>('sign-in')
+  usePageMeta({
+    title: MODE_TITLES[mode],
+    description: 'Sign in or create a free Bema account to save your sessions, streak, and XP across devices.',
+  })
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -60,19 +72,22 @@ export function AuthPage() {
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
       <div className="page-inner auth-inner">
-        <span className="wordmark">Practice</span>
-        <h1 className="setup-title">
-          {mode === 'sign-in' && 'Welcome back.'}
-          {mode === 'sign-up' && 'Create your account.'}
-          {mode === 'forgot' && 'Reset your password.'}
-        </h1>
-        <p className="lede">
-          {mode === 'forgot'
-            ? "We'll email you a link to set a new password."
-            : 'Your sessions, streak, and XP now sync across every device.'}
-        </p>
+        <div className="auth-card">
+          <span className="auth-badge">
+            <SignInIcon />
+          </span>
+          <h1 className="setup-title">
+            {mode === 'sign-in' && 'Welcome back.'}
+            {mode === 'sign-up' && 'Create your account.'}
+            {mode === 'forgot' && 'Reset your password.'}
+          </h1>
+          <p className="lede">
+            {mode === 'forgot'
+              ? "We'll email you a link to set a new password."
+              : 'Your sessions, streak, and XP now sync across every device.'}
+          </p>
 
-        <form className="auth-form" onSubmit={handleSubmit}>
+          <form className="auth-form" onSubmit={handleSubmit}>
           <div className="field">
             <span className="field-label">Email</span>
             <input
@@ -103,7 +118,7 @@ export function AuthPage() {
           {error && <p className="auth-message auth-error">{error}</p>}
           {info && <p className="auth-message auth-info">{info}</p>}
 
-          <Button variant="primary" block type="submit" disabled={submitting}>
+          <InteractiveButton className="btn btn-primary btn-block" type="submit" disabled={submitting}>
             {submitting
               ? 'Working...'
               : mode === 'sign-in'
@@ -111,7 +126,7 @@ export function AuthPage() {
                 : mode === 'sign-up'
                   ? 'Sign up'
                   : 'Send reset link'}
-          </Button>
+          </InteractiveButton>
         </form>
 
         {mode !== 'forgot' && (
@@ -120,6 +135,7 @@ export function AuthPage() {
               <span>or</span>
             </div>
             <Button block onClick={handleGoogle}>
+              <GoogleIcon />
               Continue with Google
             </Button>
           </>
@@ -147,7 +163,28 @@ export function AuthPage() {
             </button>
           )}
         </div>
+        </div>
       </div>
     </motion.div>
+  )
+}
+
+function GoogleIcon() {
+  return (
+    <svg width="17" height="17" viewBox="0 0 18 18">
+      <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84a4.14 4.14 0 01-1.8 2.72v2.26h2.9c1.7-1.57 2.7-3.87 2.7-6.62z" />
+      <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.9-2.26c-.8.54-1.84.86-3.06.86-2.35 0-4.34-1.59-5.05-3.72H.9v2.33A9 9 0 009 18z" />
+      <path fill="#FBBC05" d="M3.95 10.7A5.4 5.4 0 013.68 9c0-.59.1-1.17.27-1.7V4.97H.9A9 9 0 000 9c0 1.45.35 2.83.9 4.03l3.05-2.33z" />
+      <path fill="#EA4335" d="M9 3.58c1.32 0 2.51.46 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0A9 9 0 00.9 4.97L3.95 7.3C4.66 5.17 6.65 3.58 9 3.58z" />
+    </svg>
+  )
+}
+
+function SignInIcon() {
+  return (
+    <svg width="22" height="22" viewBox="0 0 20 20" fill="none">
+      <path d="M8 4H5a1 1 0 00-1 1v10a1 1 0 001 1h3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M12.5 13.5L16 10l-3.5-3.5M16 10H7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
   )
 }

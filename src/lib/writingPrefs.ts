@@ -1,9 +1,8 @@
-export type EditorFont = 'serif' | 'sans' | 'mono'
 export type AmbientSound = 'none' | 'brown-noise' | 'rain' | 'wind' | 'soft-pad'
 export type TypingSoundStyle = 'soft' | 'mechanical' | 'typewriter' | 'bubble' | 'crisp' | 'whisper'
 
 export interface WritingPrefs {
-  font: EditorFont
+  editorFontFamily: string
   fontSize: number
   showTimer: boolean
   ambient: AmbientSound
@@ -15,7 +14,7 @@ export interface WritingPrefs {
 const STORAGE_KEY = 'practice.writingPrefs'
 
 const DEFAULTS: WritingPrefs = {
-  font: 'sans',
+  editorFontFamily: "'Inter', sans-serif",
   fontSize: 19,
   showTimer: true,
   ambient: 'none',

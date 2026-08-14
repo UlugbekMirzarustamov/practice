@@ -5,7 +5,6 @@ import type { Format } from '../../types/flow'
 import type { Stats } from '../../lib/gamification'
 import type { IeltsPart } from '../../data/ielts'
 import { IELTS_PARTS } from '../../data/ielts'
-import type { Draft } from '../../lib/drafts'
 import { Button } from '../../components/Button'
 import { OptionToggle } from '../../components/OptionToggle'
 import { TextEffect } from '../../components/TextEffect'
@@ -13,19 +12,18 @@ import { GlowEffect } from '../../components/GlowEffect'
 import { CategoryDropdown } from './CategoryDropdown'
 import { StreakGrowth } from '../gamification/StreakGrowth'
 import { primeAudio } from '../../lib/sound'
+import { usePageMeta } from '../../lib/usePageMeta'
 
 type PracticeType = 'general' | 'ielts'
 
 interface SessionSetupProps {
   stats: Stats
-  draft: Draft | null
   onStart: (category: Category, format: Format, durationMinutes: number) => void
   onStartIelts: (part: IeltsPart, durationMinutes: number) => void
-  onResumeDraft: (draft: Draft) => void
-  onDiscardDraft: () => void
 }
 
-export function SessionSetup({ stats, draft, onStart, onStartIelts, onResumeDraft, onDiscardDraft }: SessionSetupProps) {
+export function SessionSetup({ stats, onStart, onStartIelts }: SessionSetupProps) {
+  usePageMeta({ title: 'Dashboard — Bema', description: 'Pick your focus and start a locked writing or speaking session.' })
   const [practiceType, setPracticeType] = useState<PracticeType>('general')
   const [category, setCategory] = useState<Category>('general')
   const [format, setFormat] = useState<Format>('cuff')
@@ -50,31 +48,7 @@ export function SessionSetup({ stats, draft, onStart, onStartIelts, onResumeDraf
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
       <div className="page-inner">
-        <span className="wordmark">Practice</span>
-
-        {draft && (
-          <motion.div
-            className="resume-card"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <div className="resume-card-text">
-              <span className="field-label">Paused session</span>
-              <p className="resume-card-topic">{draft.topic}</p>
-              <span className="option-hint">
-                {Math.floor(draft.secondsLeft / 60)}:{String(draft.secondsLeft % 60).padStart(2, '0')} left · saved{' '}
-                {new Date(draft.savedAt).toLocaleString()}
-              </span>
-            </div>
-            <div className="option-row" style={{ maxWidth: 260 }}>
-              <Button variant="primary" onClick={() => onResumeDraft(draft)}>
-                Resume
-              </Button>
-              <Button onClick={onDiscardDraft}>Discard</Button>
-            </div>
-          </motion.div>
-        )}
+        <span className="wordmark">Bema</span>
 
         <motion.div
           className="streak-anchor"
