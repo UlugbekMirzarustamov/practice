@@ -7,3 +7,5 @@ Disallow: /*?trial=
 # Everything else (dashboard, archive, settings, admin, etc.) sits behind
 # login with no server-rendered content for a logged-out crawler to read,
 # so there is nothing there worth indexing.
+
+Sitemap: https://writeonbema.com/sitemap.xml

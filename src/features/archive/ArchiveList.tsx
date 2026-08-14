@@ -21,6 +21,7 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
   const [sessions, setSessions] = useState<Session[]>([])
   const [filter, setFilter] = useState<FilterMode>('all')
   const [query, setQuery] = useState('')
+  const [confirmingDiscard, setConfirmingDiscard] = useState(false)
 
   useEffect(() => {
     loadSessions().then(setSessions)
@@ -67,12 +68,24 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
                 {new Date(draft.savedAt).toLocaleString()}
               </span>
             </div>
-            <div className="option-row" style={{ maxWidth: 260 }}>
-              <Button variant="primary" onClick={() => onResumeDraft(draft)}>
-                Resume
-              </Button>
-              <Button onClick={onDiscardDraft}>Discard</Button>
-            </div>
+            {!confirmingDiscard ? (
+              <div className="option-row" style={{ maxWidth: 260 }}>
+                <Button variant="primary" onClick={() => onResumeDraft(draft)}>
+                  Resume
+                </Button>
+                <Button onClick={() => setConfirmingDiscard(true)}>Discard</Button>
+              </div>
+            ) : (
+              <div className="give-up-confirm">
+                <span>Delete this paused session for sure?</span>
+                <button type="button" className="give-up-yes" onClick={onDiscardDraft}>
+                  Yes
+                </button>
+                <button type="button" className="give-up-no" onClick={() => setConfirmingDiscard(false)}>
+                  No
+                </button>
+              </div>
+            )}
           </motion.div>
         )}
 
