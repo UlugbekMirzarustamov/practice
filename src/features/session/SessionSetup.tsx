@@ -12,11 +12,13 @@ import { OptionToggle } from '../../components/OptionToggle'
 import { TextEffect } from '../../components/TextEffect'
 import { GlowEffect } from '../../components/GlowEffect'
 import { CategoryDropdown } from './CategoryDropdown'
-import { StreakGrowth } from '../gamification/StreakGrowth'
 import { primeAudio } from '../../lib/sound'
 import { usePageMeta } from '../../lib/usePageMeta'
 import { getTodaysChallenge, hasCompletedDailyChallenge, loadDailyChallengeLeaderboard, type DailyChallengeEntry } from '../../lib/dailyChallenge'
 import { loadRival, type Rival } from '../../lib/rival'
+import { loadRecentActivity, type RecentActivity } from '../../lib/storage'
+import { loadLeaderboard, type LeaderboardEntry } from '../../lib/leaderboard'
+import { useAuth } from '../../lib/auth'
 
 type PracticeType = 'general' | 'ielts'
 
@@ -27,9 +29,19 @@ interface SessionSetupProps {
   onStart: (category: Category, format: Format, durationMinutes: number, customTopic?: string, difficulty?: Difficulty | null) => void
   onStartIelts: (part: IeltsPart, durationMinutes: number) => void
   onStartChallenge: (mode: Mode, topic: string) => void
+  onOpenLeaderboard: () => void
 }
 
-export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }: SessionSetupProps) {
+const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
+
+function nameInitials(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean)
+  if (parts.length === 0) return '?'
+  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
+  return (parts[0][0] + parts[1][0]).toUpperCase()
+}
+
+export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, onOpenLeaderboard }: SessionSetupProps) {
   usePageMeta({ title: 'Dashboard — Bema', description: 'Pick your focus and start a locked writing or speaking session.' })
   const [practiceType, setPracticeType] = useState<PracticeType>('general')
   const [category, setCategory] = useState<Category>('general')
@@ -64,36 +76,19 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
       <div className="page-inner">
         <span className="wordmark">Bema</span>
 
-        <motion.div
-          className="streak-anchor"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-        >
-          <StreakGrowth streak={stats.streak} sessionCount={stats.sessionCount} size="lg" />
-          {stats.streakFreezes > 0 && (
-            <div className="freeze-badge" title="Miss a day with a freeze available and your streak survives">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                <path d="M12 2v20M5 6l14 12M19 6L5 18M4 12h16M8 3l4 3 4-3M8 21l4-3 4 3M3 8l3 4-3 4M21 8l-3 4 3 4" />
-              </svg>
-              <span>
-                {stats.streakFreezes} freeze{stats.streakFreezes === 1 ? '' : 's'}
-              </span>
-            </div>
-          )}
-          <p className="streak-anchor-line">
-            {stats.streak > 0
-              ? `${stats.streak} day${stats.streak === 1 ? '' : 's'} strong. Keep it alive today.`
-              : stats.sessionCount > 0
-                ? 'Your streak reset. Start a session to bring it back.'
-                : 'Complete a session to start your streak.'}
-          </p>
-        </motion.div>
+        <DashboardHeader stats={stats} />
+
+        <div className="dashboard-cards-row">
+          <TodaysPlanCard stats={stats} onStartChallenge={onStartChallenge} />
+          <WeekStreakCard stats={stats} />
+        </div>
 
         <div className="dashboard-cards-row">
           <DailyChallengeCard onStartChallenge={onStartChallenge} />
           <RivalCard />
         </div>
+
+        <LeaderboardCard onOpenLeaderboard={onOpenLeaderboard} />
 
         <h1 className="setup-title">
           <TextEffect speedReveal={1.2} speedSegment={0.6}>
@@ -239,6 +234,205 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
   )
 }
 
+function DashboardHeader({ stats }: { stats: Stats }) {
+  const progressPct = Math.max(0, Math.min(100, stats.level.progress * 100))
+  return (
+    <motion.div className="dashboard-header-bar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
+      <div className="dashboard-header-badge">
+        <span className="dashboard-header-badge-level">Lv {stats.level.level}</span>
+      </div>
+      <div className="dashboard-header-xp">
+        <div className="dashboard-xp-track">
+          <motion.div
+            className="dashboard-xp-fill"
+            initial={{ width: 0 }}
+            animate={{ width: `${progressPct}%` }}
+            transition={{ duration: 0.6, ease: 'easeOut' }}
+          />
+        </div>
+        <span className="dashboard-header-xp-label tabular">
+          {stats.level.xpIntoLevel}/{stats.level.xpForNextLevel} XP to Lv {stats.level.level + 1}
+        </span>
+      </div>
+      <div className="dashboard-header-streak">
+        <FlameIcon />
+        <span className="tabular">{stats.streak}</span>
+      </div>
+    </motion.div>
+  )
+}
+
+function WeekStreakCard({ stats }: { stats: Stats }) {
+  const [activity, setActivity] = useState<RecentActivity | null>(null)
+
+  useEffect(() => {
+    loadRecentActivity()
+      .then(setActivity)
+      .catch(() => setActivity({ activeDates: new Set(), hasDeepResearchToday: false }))
+  }, [])
+
+  const today = new Date()
+  const todayIndex = today.getUTCDay()
+  const days = useMemo(() => {
+    return DAY_LABELS.map((label, i) => {
+      const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - todayIndex + i))
+      return { label, dateStr: d.toISOString().slice(0, 10), isToday: i === todayIndex, isFuture: i > todayIndex }
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [todayIndex])
+
+  return (
+    <motion.div className="dashboard-card streak-week-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
+      <div className="dashboard-card-top">
+        <span className="dashboard-card-eyebrow">Your Streak</span>
+        {stats.streakFreezes > 0 && (
+          <div className="freeze-badge" title="Miss a day with a freeze available and your streak survives">
+            <SnowflakeIcon />
+            <span>
+              {stats.streakFreezes} freeze{stats.streakFreezes === 1 ? '' : 's'}
+            </span>
+          </div>
+        )}
+      </div>
+
+      <div className="streak-count-display">
+        <span className="streak-count-number tabular">{stats.streak}</span>
+        <span className="streak-count-unit">day{stats.streak === 1 ? '' : 's'}</span>
+      </div>
+
+      <div className="week-calendar">
+        {days.map((d) => {
+          const active = activity?.activeDates.has(d.dateStr) ?? false
+          return (
+            <div key={d.dateStr} className={['week-calendar-day', d.isToday ? 'today' : '', d.isFuture ? 'future' : ''].filter(Boolean).join(' ')}>
+              <span className="week-calendar-day-label">{d.label}</span>
+              <span className={['week-calendar-dot', active ? 'active' : ''].filter(Boolean).join(' ')} />
+            </div>
+          )
+        })}
+      </div>
+    </motion.div>
+  )
+}
+
+function TodaysPlanCard({ stats, onStartChallenge }: { stats: Stats; onStartChallenge: (mode: Mode, topic: string) => void }) {
+  const challenge = useMemo(() => getTodaysChallenge(), [])
+  const [challengeDone, setChallengeDone] = useState<boolean | null>(null)
+  const [activity, setActivity] = useState<RecentActivity | null>(null)
+
+  useEffect(() => {
+    hasCompletedDailyChallenge()
+      .then(setChallengeDone)
+      .catch(() => setChallengeDone(false))
+    loadRecentActivity()
+      .then(setActivity)
+      .catch(() => setActivity({ activeDates: new Set(), hasDeepResearchToday: false }))
+  }, [])
+
+  const todayUtc = new Date().toISOString().slice(0, 10)
+  const sessionToday = activity?.activeDates.has(todayUtc) ?? false
+  const deepResearchToday = activity?.hasDeepResearchToday ?? false
+
+  const items = [
+    {
+      id: 'challenge',
+      title: "Complete today's Daily Challenge",
+      detail: challenge.topic,
+      done: challengeDone === true,
+      action: challengeDone === false ? () => onStartChallenge(challenge.mode, challenge.topic) : undefined,
+      actionLabel: 'Start',
+    },
+    {
+      id: 'streak',
+      title: 'Keep your streak alive',
+      detail: stats.streak > 0 ? `${stats.streak}-day streak going` : 'Start a session today',
+      done: sessionToday,
+      action: undefined,
+      actionLabel: undefined,
+    },
+    {
+      id: 'deep',
+      title: 'Try a Deep Research session',
+      detail: 'Think first, then respond',
+      done: deepResearchToday,
+      action: undefined,
+      actionLabel: undefined,
+    },
+  ]
+
+  return (
+    <motion.div className="dashboard-card plan-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      <span className="dashboard-card-eyebrow">Today's Plan</span>
+      <div className="plan-checklist">
+        {items.map((item) => (
+          <div key={item.id} className={['plan-checklist-item', item.done ? 'done' : ''].filter(Boolean).join(' ')}>
+            <span className={['plan-checkbox', item.done ? 'checked' : ''].filter(Boolean).join(' ')} aria-hidden="true">
+              {item.done && <CheckGlyph />}
+            </span>
+            <div className="plan-item-body">
+              <span className="plan-item-title">{item.title}</span>
+              <span className="plan-item-detail">{item.detail}</span>
+            </div>
+            {item.action && (
+              <button type="button" className="text-link" onClick={item.action}>
+                {item.actionLabel}
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </motion.div>
+  )
+}
+
+function LeaderboardCard({ onOpenLeaderboard }: { onOpenLeaderboard: () => void }) {
+  const { user } = useAuth()
+  const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null)
+
+  useEffect(() => {
+    loadLeaderboard()
+      .then((all) => setEntries(all.slice(0, 5)))
+      .catch(() => setEntries([]))
+  }, [])
+
+  if (entries && entries.length === 0) return null
+
+  return (
+    <motion.div className="dashboard-card leaderboard-mini-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+      <div className="dashboard-card-top">
+        <span className="dashboard-card-eyebrow">Leaderboard</span>
+        <button type="button" className="text-link" onClick={onOpenLeaderboard}>
+          View all
+        </button>
+      </div>
+      {!entries ? (
+        <span className="option-hint">Loading...</span>
+      ) : (
+        <div className="leaderboard-list">
+          {entries.map((e, i) => (
+            <div key={e.userId} className={['leaderboard-row', 'compact', e.userId === user?.id ? 'you' : ''].filter(Boolean).join(' ')}>
+              <span className="leaderboard-rank tabular">#{i + 1}</span>
+              {e.avatarUrl ? (
+                <img src={e.avatarUrl} alt={`${e.displayName}'s avatar`} className="leaderboard-avatar" />
+              ) : (
+                <span className="leaderboard-avatar-fallback">{nameInitials(e.displayName)}</span>
+              )}
+              <div className="leaderboard-identity">
+                <span className="leaderboard-name">
+                  {e.displayName}
+                  {e.userId === user?.id && <span className="you-badge">You</span>}
+                </span>
+                <span className="leaderboard-handle tabular">@{e.handle}</span>
+              </div>
+              <span className="leaderboard-xp tabular">{e.totalXp.toLocaleString()} XP</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </motion.div>
+  )
+}
+
 function DailyChallengeCard({ onStartChallenge }: { onStartChallenge: (mode: Mode, topic: string) => void }) {
   const challenge = useMemo(() => getTodaysChallenge(), [])
   const [completed, setCompleted] = useState<boolean | null>(null)
@@ -335,5 +529,32 @@ function RivalCard() {
             : `You're behind by ${Math.abs(gap).toLocaleString()} XP.`}
       </p>
     </motion.div>
+  )
+}
+
+function FlameIcon() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
+      <path
+        d="M10 2c1 3-2.5 4-2.5 7a2.5 2.5 0 005 0c0-1-0.5-1.5-0.5-1.5 1.5 1 2.5 2.8 2.5 4.5a5 5 0 01-10 0C4.5 8 7 6.5 10 2z"
+        fill="var(--accent)"
+      />
+    </svg>
+  )
+}
+
+function SnowflakeIcon() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+      <path d="M12 2v20M5 6l14 12M19 6L5 18M4 12h16M8 3l4 3 4-3M8 21l4-3 4 3M3 8l3 4-3 4M21 8l-3 4 3 4" />
+    </svg>
+  )
+}
+
+function CheckGlyph() {
+  return (
+    <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12.5l4.5 4.5L19 7" />
+    </svg>
   )
 }

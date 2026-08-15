@@ -112,6 +112,26 @@ export async function updateSession(id: string, patch: Partial<Session>): Promis
   if (error) throw error
 }
 
+export interface RecentActivity {
+  /** UTC 'YYYY-MM-DD' dates with at least one session, from this week's Sunday through today. */
+  activeDates: Set<string>
+  hasDeepResearchToday: boolean
+}
+
+/** Powers the dashboard's week-view streak calendar and "today's plan" checklist — real data, no invented state. */
+export async function loadRecentActivity(): Promise<RecentActivity> {
+  const now = new Date()
+  const sunday = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay()))
+  const { data, error } = await supabase.from('sessions').select('created_at, format').gte('created_at', sunday.toISOString())
+  if (error) throw error
+  const rows = (data ?? []) as { created_at: string; format: string }[]
+  const todayUtc = now.toISOString().slice(0, 10)
+  return {
+    activeDates: new Set(rows.map((r) => r.created_at.slice(0, 10))),
+    hasDeepResearchToday: rows.some((r) => r.created_at.slice(0, 10) === todayUtc && r.format === 'deep'),
+  }
+}
+
 export async function loadComments(sessionId: string): Promise<Comment[]> {
   const { data, error } = await supabase
     .from('comments')

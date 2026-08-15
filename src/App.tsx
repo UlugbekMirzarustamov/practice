@@ -471,6 +471,7 @@ function AuthenticatedApp() {
               onStart={handlePickTopic}
               onStartIelts={handlePickIelts}
               onStartChallenge={handleStartChallenge}
+              onOpenLeaderboard={() => setScreen({ name: 'leaderboard' })}
             />
           )}
 
