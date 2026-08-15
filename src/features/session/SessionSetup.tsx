@@ -19,6 +19,7 @@ import { loadRival, type Rival } from '../../lib/rival'
 import { loadRecentActivity, type RecentActivity } from '../../lib/storage'
 import { loadLeaderboard, type LeaderboardEntry } from '../../lib/leaderboard'
 import { useAuth } from '../../lib/auth'
+import { WeekCalendarRow } from '../../components/WeekCalendarRow'
 
 type PracticeType = 'general' | 'ielts'
 
@@ -31,8 +32,6 @@ interface SessionSetupProps {
   onStartChallenge: (mode: Mode, topic: string) => void
   onOpenLeaderboard: () => void
 }
-
-const DAY_LABELS = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
 function nameInitials(name: string): string {
   const parts = name.trim().split(/\s+/).filter(Boolean)
@@ -241,16 +240,6 @@ function WeekStreakCard({ stats }: { stats: Stats }) {
       .catch(() => setActivity({ activeDates: new Set(), hasDeepResearchToday: false }))
   }, [])
 
-  const today = new Date()
-  const todayIndex = today.getUTCDay()
-  const days = useMemo(() => {
-    return DAY_LABELS.map((label, i) => {
-      const d = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - todayIndex + i))
-      return { label, dateStr: d.toISOString().slice(0, 10), isToday: i === todayIndex, isFuture: i > todayIndex }
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [todayIndex])
-
   return (
     <motion.div className="dashboard-card streak-week-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 }}>
       <div className="dashboard-card-top">
@@ -270,17 +259,7 @@ function WeekStreakCard({ stats }: { stats: Stats }) {
         <span className="streak-count-unit">day{stats.streak === 1 ? '' : 's'}</span>
       </div>
 
-      <div className="week-calendar">
-        {days.map((d) => {
-          const active = activity?.activeDates.has(d.dateStr) ?? false
-          return (
-            <div key={d.dateStr} className={['week-calendar-day', d.isToday ? 'today' : '', d.isFuture ? 'future' : ''].filter(Boolean).join(' ')}>
-              <span className="week-calendar-day-label">{d.label}</span>
-              <span className={['week-calendar-dot', active ? 'active' : ''].filter(Boolean).join(' ')} />
-            </div>
-          )
-        })}
-      </div>
+      <WeekCalendarRow activeDates={activity?.activeDates ?? new Set()} />
     </motion.div>
   )
 }

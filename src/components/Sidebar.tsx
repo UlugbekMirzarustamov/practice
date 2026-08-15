@@ -11,12 +11,10 @@ interface SidebarProps {
   profile: Profile
   collapsed: boolean
   onToggleCollapse: () => void
-  unreadNotifications?: number
 }
 
 const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }) => ReactElement }[] = [
   { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-  { id: 'notifications', label: 'Notifications', icon: BellIcon },
   { id: 'archive', label: 'Writings', icon: ArchiveIcon },
   { id: 'discover', label: 'Discover', icon: DiscoverIcon },
   { id: 'leaderboard', label: 'Leaderboard', icon: LeaderboardIcon },
@@ -25,7 +23,7 @@ const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
-export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollapse, unreadNotifications = 0 }: SidebarProps) {
+export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollapse }: SidebarProps) {
   return (
     <motion.aside
       className={['sidebar', collapsed ? 'collapsed' : ''].filter(Boolean).join(' ')}
@@ -42,7 +40,6 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
         {ITEMS.map((item) => {
           const isActive = active === item.id
           const Icon = item.icon
-          const showBadge = item.id === 'notifications' && unreadNotifications > 0
           return (
             <button
               key={item.id}
@@ -53,14 +50,8 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
             >
               <span className="sidebar-icon-wrap">
                 <Icon active={isActive} />
-                {showBadge && <span className="sidebar-badge-dot" />}
               </span>
-              {!collapsed && (
-                <span className="sidebar-item-label">
-                  {item.label}
-                  {showBadge && <span className="sidebar-badge-count">{unreadNotifications > 9 ? '9+' : unreadNotifications}</span>}
-                </span>
-              )}
+              {!collapsed && <span className="sidebar-item-label">{item.label}</span>}
             </button>
           )
         })}
@@ -106,21 +97,6 @@ function ArchiveIcon({ active }: { active: boolean }) {
       <rect x="3" y="4" width="14" height="4" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
       <path d="M4 8v7a1 1 0 001 1h10a1 1 0 001-1V8" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
       <path d="M8 11h4" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" />
-    </svg>
-  )
-}
-
-function BellIcon({ active }: { active: boolean }) {
-  const color = active ? 'var(--accent)' : 'currentColor'
-  return (
-    <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M5 8.5a5 5 0 0110 0v3.2l1.3 2.3H3.7L5 11.7V8.5z"
-        stroke={color}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
-      <path d="M8.2 16.5a1.8 1.8 0 003.6 0" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

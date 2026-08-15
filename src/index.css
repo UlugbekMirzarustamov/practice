@@ -2042,6 +2042,12 @@ h3 {
   border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--border));
   background: color-mix(in srgb, var(--accent) 12%, transparent);
   flex-shrink: 0;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.top-status-badge:hover {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
 .top-status-badge-text {
@@ -2059,6 +2065,17 @@ h3 {
   font-weight: 700;
   color: var(--text);
   flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 4px 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background-color 0.15s ease;
+}
+
+.top-status-stat:hover {
+  background: var(--bg-elevated-2);
 }
 
 .top-status-spacer {
@@ -2806,6 +2823,111 @@ h3 {
   width: 16px;
   border-radius: 999px;
   transition: width 0.25s ease;
+}
+
+.stat-detail-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 150;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  cursor: pointer;
+}
+
+.stat-detail-card {
+  position: relative;
+  width: 100%;
+  max-width: 360px;
+  padding: 30px 26px 26px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  box-shadow: 0 40px 90px -24px rgba(0, 0, 0, 0.65);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  cursor: default;
+}
+
+.stat-detail-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--text-faint);
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.stat-detail-close:hover {
+  color: var(--text);
+}
+
+.stat-detail-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  margin-bottom: 4px;
+}
+
+.stat-detail-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--accent-strong);
+}
+
+.stat-detail-number {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.stat-detail-sub {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-bottom: 8px;
+}
+
+.stat-detail-progress-block {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.stat-detail-progress-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.stat-detail-hint {
+  font-size: 12px;
+  color: var(--text-faint);
+  text-align: center;
+}
+
+.stat-detail-hint-growth {
+  color: var(--growth-strong);
 }
 
 .milestone-overlay {

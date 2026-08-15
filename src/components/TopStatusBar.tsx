@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
+import { AnimatePresence } from 'motion/react'
 import type { Stats } from '../lib/gamification'
+import { StatDetailModal, type StatDetailKind } from './StatDetailModal'
 
 interface TopStatusBarProps {
   stats: Stats
@@ -11,6 +13,7 @@ interface TopStatusBarProps {
 export function TopStatusBar({ stats, unreadNotifications, onOpenNotifications, scrollContainerRef }: TopStatusBarProps) {
   const [scrolled, setScrolled] = useState(false)
   const [showProNote, setShowProNote] = useState(false)
+  const [activeDetail, setActiveDetail] = useState<StatDetailKind | null>(null)
   const proNoteTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   useEffect(() => {
@@ -35,35 +38,46 @@ export function TopStatusBar({ stats, unreadNotifications, onOpenNotifications, 
   }
 
   return (
-    <div className={['top-status-bar', scrolled ? 'scrolled' : ''].filter(Boolean).join(' ')}>
-      <div className="top-status-badge" title={`Level ${stats.level.level}`}>
-        <span className="top-status-badge-text">Lv {stats.level.level}</span>
-      </div>
-
-      <div className="top-status-stat" title="Best streak">
-        <StarIcon />
-        <span className="tabular">{stats.bestStreak}</span>
-      </div>
-
-      <div className="top-status-stat top-status-streak" title="Current streak">
-        <FlameIcon />
-        <span className="tabular">{stats.streak}</span>
-      </div>
-
-      <div className="top-status-spacer" />
-
-      <div className="top-status-pro-wrap">
-        <button type="button" className="top-status-pro" onClick={handleProClick}>
-          Pro
+    <>
+      <div className={['top-status-bar', scrolled ? 'scrolled' : ''].filter(Boolean).join(' ')}>
+        <button type="button" className="top-status-badge" title={`Level ${stats.level.level}`} onClick={() => setActiveDetail('level')}>
+          <span className="top-status-badge-text">Lv {stats.level.level}</span>
         </button>
-        {showProNote && <div className="top-status-pro-note">Pro plans are coming soon.</div>}
+
+        <button type="button" className="top-status-stat" title="Best streak" onClick={() => setActiveDetail('star')}>
+          <StarIcon />
+          <span className="tabular">{stats.bestStreak}</span>
+        </button>
+
+        <button
+          type="button"
+          className="top-status-stat top-status-streak"
+          title="Current streak"
+          onClick={() => setActiveDetail('streak')}
+        >
+          <FlameIcon />
+          <span className="tabular">{stats.streak}</span>
+        </button>
+
+        <div className="top-status-spacer" />
+
+        <div className="top-status-pro-wrap">
+          <button type="button" className="top-status-pro" onClick={handleProClick}>
+            Pro
+          </button>
+          {showProNote && <div className="top-status-pro-note">Pro plans are coming soon.</div>}
+        </div>
+
+        <button type="button" className="top-status-bell" onClick={onOpenNotifications} aria-label="Notifications">
+          <BellIcon />
+          {unreadNotifications > 0 && <span className="top-status-bell-dot" />}
+        </button>
       </div>
 
-      <button type="button" className="top-status-bell" onClick={onOpenNotifications} aria-label="Notifications">
-        <BellIcon />
-        {unreadNotifications > 0 && <span className="top-status-bell-dot" />}
-      </button>
-    </div>
+      <AnimatePresence>
+        {activeDetail && <StatDetailModal kind={activeDetail} stats={stats} onClose={() => setActiveDetail(null)} />}
+      </AnimatePresence>
+    </>
   )
 }
 

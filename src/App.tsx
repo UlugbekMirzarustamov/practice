@@ -458,7 +458,6 @@ function AuthenticatedApp() {
           profile={profile}
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapsed}
-          unreadNotifications={unreadNotifications}
         />
       )}
 
