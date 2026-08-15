@@ -179,7 +179,7 @@ export async function generateReportCardCanvas(data: ReportCardData): Promise<HT
   const statY = 1260
   const statXs = [centerX - 220, centerX + 220]
   const statValues = [String(data.xpEarned), String(data.streak)]
-  const statLabels = ['XP EARNED', 'DAY STREAK']
+  const statLabels = ['XP EARNED', 'STREAK TODAY']
   for (let i = 0; i < 2; i++) {
     ctx.font = '800 120px "Bricolage Grotesque"'
     ctx.fillStyle = i === 0 ? PALETTE.accentStrong : PALETTE.growth

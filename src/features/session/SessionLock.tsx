@@ -12,7 +12,7 @@ import { SessionOptionsPanel, EyeIcon, EyeOffIcon } from './SessionOptionsPanel'
 import { FormattingDock } from './FormattingDock'
 import { FirstSessionGuide } from './FirstSessionGuide'
 import { loadWritingPrefs, saveWritingPrefs, type WritingPrefs } from '../../lib/writingPrefs'
-import { playKeystroke, startAmbient, stopAmbient } from '../../lib/sound'
+import { playKeystroke, startAmbient, stopAmbient, primeAudio } from '../../lib/sound'
 import { analyzeSpeakingFeedback, analyzeWritingFeedback } from '../../lib/sessionAnalysis'
 
 interface SessionLockProps {
@@ -72,6 +72,7 @@ export function SessionLock({
   const editorRef = useRef<HTMLDivElement>(null)
   const editorInitialized = useRef(false)
   const pastedRef = useRef(false)
+  const audioRetriedRef = useRef(false)
   const { transcript, listening, hasRecognized } = useSpeechRecognition(mode === 'speaking')
   const { getSilenceSeconds } = useSpeakingTiming(mode === 'speaking', transcript)
 
@@ -155,6 +156,20 @@ export function SessionLock({
     saveWritingPrefs(next)
   }
 
+  /**
+   * Defensive re-prime on every tap. Covers entry paths that don't already prime audio
+   * (mobile browsers commonly suspend the AudioContext when it wasn't created inside a
+   * gesture, or when the tab was backgrounded), and retries the ambient bed once if it
+   * silently failed to start on mount because the context wasn't primed yet.
+   */
+  const handlePointerDownCapture = () => {
+    primeAudio()
+    if (!audioRetriedRef.current) {
+      audioRetriedRef.current = true
+      if (prefs.ambient !== 'none') startAmbient(prefs.ambient, prefs.ambientVolume)
+    }
+  }
+
   const handleEditorInput = () => {
     const text = editorRef.current?.innerText ?? ''
     setContent(text)
@@ -199,6 +214,7 @@ export function SessionLock({
   return (
     <motion.div
       className={['lock-page', danger ? 'danger-warning' : ''].filter(Boolean).join(' ')}
+      onPointerDownCapture={handlePointerDownCapture}
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}

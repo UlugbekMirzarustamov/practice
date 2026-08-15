@@ -392,6 +392,8 @@ function AuthenticatedApp() {
       dangerSeconds: screen.dangerSeconds,
       content,
       secondsLeft,
+      isCustomTopic: screen.isCustomTopic,
+      isDailyChallenge: screen.isDailyChallenge,
     })
     setDraft(await loadDraft())
     setScreen({ name: 'setup' })
@@ -400,6 +402,7 @@ function AuthenticatedApp() {
   const handleLeaveNeutral = () => setScreen({ name: 'setup' })
 
   const handleResumeDraft = (d: Draft) => {
+    primeAudio()
     clearDraft()
     setDraft(null)
     setScreen({
@@ -416,6 +419,8 @@ function AuthenticatedApp() {
       topic: d.topic,
       initialContent: d.content,
       initialSecondsLeft: d.secondsLeft,
+      isCustomTopic: d.isCustomTopic,
+      isDailyChallenge: d.isDailyChallenge,
     })
   }
 

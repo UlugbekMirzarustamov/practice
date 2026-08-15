@@ -17,6 +17,8 @@ export interface Draft {
   content: string
   secondsLeft: number
   savedAt: string
+  isCustomTopic?: boolean
+  isDailyChallenge?: boolean
 }
 
 interface DraftRow {
@@ -33,6 +35,8 @@ interface DraftRow {
   content: string
   seconds_left: number
   saved_at: string
+  is_custom_topic: boolean | null
+  is_daily_challenge: boolean | null
 }
 
 function rowToDraft(row: DraftRow): Draft {
@@ -50,6 +54,8 @@ function rowToDraft(row: DraftRow): Draft {
     content: row.content,
     secondsLeft: row.seconds_left,
     savedAt: row.saved_at,
+    isCustomTopic: row.is_custom_topic ?? undefined,
+    isDailyChallenge: row.is_daily_challenge ?? undefined,
   }
 }
 
@@ -84,6 +90,8 @@ export async function saveDraft(draft: Omit<Draft, 'savedAt'>): Promise<void> {
     content: draft.content,
     seconds_left: draft.secondsLeft,
     saved_at: new Date().toISOString(),
+    is_custom_topic: draft.isCustomTopic ?? false,
+    is_daily_challenge: draft.isDailyChallenge ?? false,
   })
   if (error) throw error
 }

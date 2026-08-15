@@ -63,14 +63,19 @@ export function TopicReveal({
   const [display, setDisplay] = useState(() => (isCustomTopic ? initialTopic : randomPrompt(category, ielts, difficulty)))
   const [shuffling, setShuffling] = useState(!isCustomTopic)
   const [settled, setSettled] = useState(!!isCustomTopic)
-  const [mode, setMode] = useState<Mode | null>(ielts ? 'speaking' : (forcedMode ?? null))
+
+  const speakingSupported = isSpeechRecognitionSupported()
+  // A forced speaking mode (e.g. today's daily challenge) falls back to writing on browsers
+  // without speech recognition, rather than locking the user into a dead, unresponsive session.
+  const effectiveForcedMode: Mode | undefined = forcedMode === 'speaking' && !speakingSupported ? 'writing' : forcedMode
+
+  const [mode, setMode] = useState<Mode | null>(ielts ? 'speaking' : (effectiveForcedMode ?? null))
   const [dangerChoice, setDangerChoice] = useState<boolean | null>(null)
   const [dangerSeconds, setDangerSeconds] = useState(8)
   const [showResearchPicker, setShowResearchPicker] = useState(false)
   const [researchMinutes, setResearchMinutes] = useState(10)
   const [runId, setRunId] = useState(0)
 
-  const speakingSupported = isSpeechRecognitionSupported()
   const isIeltsPrep = ielts === 'part2'
 
   useEffect(() => {
@@ -199,16 +204,18 @@ export function TopicReveal({
             )}
           </div>
 
-          {dangerChoice !== null && !ielts && forcedMode && (
+          {dangerChoice !== null && !ielts && effectiveForcedMode && (
             <div className="field">
               <span className="field-label">Respond by</span>
               <p className="option-hint" style={{ margin: 0 }}>
-                Today's challenge is {forcedMode === 'writing' ? 'a writing' : 'a speaking'} prompt for everyone.
+                {forcedMode !== effectiveForcedMode
+                  ? "Today's challenge is a speaking prompt, but your browser doesn't support live speech recognition — you'll write it instead."
+                  : `Today's challenge is ${effectiveForcedMode === 'writing' ? 'a writing' : 'a speaking'} prompt for everyone.`}
               </p>
             </div>
           )}
 
-          {dangerChoice !== null && !ielts && !forcedMode && (
+          {dangerChoice !== null && !ielts && !effectiveForcedMode && (
             <div className="field">
               <span className="field-label">Respond by</span>
               <div className="option-row">

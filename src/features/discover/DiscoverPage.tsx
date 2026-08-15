@@ -13,6 +13,7 @@ import { toggleSaveSession } from '../../lib/publicSession'
 import { VerifiedBadge } from '../../components/VerifiedBadge'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
+import { primeAudio } from '../../lib/sound'
 
 interface DiscoverPageProps {
   onOpenProfile: (handle: string) => void
@@ -89,7 +90,15 @@ export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps)
             <span className="field-label">Trending topics</span>
             <div className="trending-list">
               {trending.map((t) => (
-                <button key={t.topic} type="button" className="trending-chip" onClick={() => onStartTopic(t.topic)}>
+                <button
+                  key={t.topic}
+                  type="button"
+                  className="trending-chip"
+                  onClick={() => {
+                    primeAudio()
+                    onStartTopic(t.topic)
+                  }}
+                >
                   <TrendingIcon />
                   <span className="trending-chip-topic">{t.topic}</span>
                   <span className="trending-chip-count tabular">{t.attempts}</span>

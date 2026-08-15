@@ -32,6 +32,8 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
   const [textCopied, setTextCopied] = useState(false)
   const [linkCopied, setLinkCopied] = useState(false)
   const [showReportCard, setShowReportCard] = useState(false)
+  const [publishSaving, setPublishSaving] = useState(false)
+  const [publishError, setPublishError] = useState(false)
 
   const handleCopyText = async () => {
     try {
@@ -62,9 +64,19 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
     updateSession(session.id, { tags: next })
   }
 
-  const choosePublish = (value: boolean) => {
+  const choosePublish = async (value: boolean) => {
+    const previous = published
     setPublished(value)
-    updateSession(session.id, { published: value })
+    setPublishError(false)
+    setPublishSaving(true)
+    try {
+      await updateSession(session.id, { published: value })
+    } catch {
+      setPublished(previous)
+      setPublishError(true)
+    } finally {
+      setPublishSaving(false)
+    }
   }
 
   return (
@@ -166,6 +178,7 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
               type="button"
               className={['option', published === true ? 'selected' : ''].filter(Boolean).join(' ')}
               onClick={() => choosePublish(true)}
+              disabled={publishSaving}
             >
               <span className="option-label">Yes</span>
             </button>
@@ -173,11 +186,16 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
               type="button"
               className={['option', published === false ? 'selected' : ''].filter(Boolean).join(' ')}
               onClick={() => choosePublish(false)}
+              disabled={publishSaving}
             >
               <span className="option-label">No</span>
             </button>
           </div>
-          {published === true && (
+          {publishSaving && <p className="option-hint">Saving...</p>}
+          {publishError && (
+            <p className="auth-message auth-error">Couldn't save that — check your connection and try again.</p>
+          )}
+          {published === true && !publishSaving && (
             <div className="publish-link-row">
               <p className="option-hint">Visible on your Posts tab. You can unpublish anytime.</p>
               <button type="button" className="copy-text-btn" onClick={handleCopyLink}>
