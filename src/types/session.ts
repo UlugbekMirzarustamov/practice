@@ -52,4 +52,5 @@ export interface Session {
   feedback?: SessionFeedback
   verifiedUnaided?: boolean
   isCustomTopic?: boolean
+  isDailyChallenge?: boolean
 }

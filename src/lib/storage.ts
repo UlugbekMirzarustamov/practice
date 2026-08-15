@@ -21,6 +21,7 @@ interface SessionRow {
   feedback: SessionFeedback | null
   verified_unaided: boolean
   is_custom_topic: boolean
+  is_daily_challenge: boolean
 }
 
 interface CommentRow {
@@ -46,6 +47,7 @@ function rowToSession(row: SessionRow): Session {
     feedback: row.feedback ?? undefined,
     verifiedUnaided: row.verified_unaided,
     isCustomTopic: row.is_custom_topic,
+    isDailyChallenge: row.is_daily_challenge,
   }
 }
 
@@ -66,6 +68,7 @@ export interface NewSessionInput {
   feedback?: SessionFeedback
   verifiedUnaided?: boolean
   isCustomTopic?: boolean
+  isDailyChallenge?: boolean
 }
 
 /** Inserts a session. id/createdAt/liked/published/tags are all assigned by the database. */
@@ -89,6 +92,7 @@ export async function createSession(input: NewSessionInput): Promise<Session> {
       feedback: input.feedback ?? null,
       verified_unaided: input.verifiedUnaided ?? false,
       is_custom_topic: input.isCustomTopic ?? false,
+      is_daily_challenge: input.isDailyChallenge ?? false,
     })
     .select()
     .single()

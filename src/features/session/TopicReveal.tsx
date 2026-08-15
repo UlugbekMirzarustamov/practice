@@ -27,6 +27,7 @@ interface TopicRevealProps {
   initialIeltsTopicLabel?: string
   isCustomTopic?: boolean
   difficulty?: Difficulty | null
+  forcedMode?: Mode
   onLeave: () => void
   onStart: (mode: Mode, topic: string, opts: StartOptions) => void
   onResearch: (mode: Mode, topic: string, minutes: number, opts: StartOptions) => void
@@ -51,6 +52,7 @@ export function TopicReveal({
   initialIeltsTopicLabel,
   isCustomTopic,
   difficulty,
+  forcedMode,
   onLeave,
   onStart,
   onResearch,
@@ -61,7 +63,7 @@ export function TopicReveal({
   const [display, setDisplay] = useState(() => (isCustomTopic ? initialTopic : randomPrompt(category, ielts, difficulty)))
   const [shuffling, setShuffling] = useState(!isCustomTopic)
   const [settled, setSettled] = useState(!!isCustomTopic)
-  const [mode, setMode] = useState<Mode | null>(ielts ? 'speaking' : null)
+  const [mode, setMode] = useState<Mode | null>(ielts ? 'speaking' : (forcedMode ?? null))
   const [dangerChoice, setDangerChoice] = useState<boolean | null>(null)
   const [dangerSeconds, setDangerSeconds] = useState(8)
   const [showResearchPicker, setShowResearchPicker] = useState(false)
@@ -197,7 +199,16 @@ export function TopicReveal({
             )}
           </div>
 
-          {dangerChoice !== null && !ielts && (
+          {dangerChoice !== null && !ielts && forcedMode && (
+            <div className="field">
+              <span className="field-label">Respond by</span>
+              <p className="option-hint" style={{ margin: 0 }}>
+                Today's challenge is {forcedMode === 'writing' ? 'a writing' : 'a speaking'} prompt for everyone.
+              </p>
+            </div>
+          )}
+
+          {dangerChoice !== null && !ielts && !forcedMode && (
             <div className="field">
               <span className="field-label">Respond by</span>
               <div className="option-row">

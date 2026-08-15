@@ -3,7 +3,7 @@ import { motion } from 'motion/react'
 import type { Profile } from '../lib/profile'
 import { ProfileMenu } from './ProfileMenu'
 
-export type SidebarDest = 'dashboard' | 'archive' | 'discover' | 'notifications' | 'leaderboard' | 'profile' | 'settings' | 'admin'
+export type SidebarDest = 'dashboard' | 'archive' | 'discover' | 'notifications' | 'leaderboard' | 'groups' | 'profile' | 'settings' | 'admin'
 
 interface SidebarProps {
   active: SidebarDest
@@ -20,6 +20,7 @@ const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }
   { id: 'archive', label: 'Writings', icon: ArchiveIcon },
   { id: 'discover', label: 'Discover', icon: DiscoverIcon },
   { id: 'leaderboard', label: 'Leaderboard', icon: LeaderboardIcon },
+  { id: 'groups', label: 'Groups', icon: GroupsIcon },
   { id: 'profile', label: 'Profile', icon: ProfileIcon },
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
@@ -140,6 +141,18 @@ function LeaderboardIcon({ active }: { active: boolean }) {
       <rect x="3" y="10" width="4" height="7" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
       <rect x="8" y="6" width="4" height="11" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
       <rect x="13" y="3" width="4" height="14" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
+    </svg>
+  )
+}
+
+function GroupsIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
+  return (
+    <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+      <circle cx="7" cy="7" r="2.6" stroke={color} strokeWidth="1.5" />
+      <circle cx="14" cy="8" r="2.1" stroke={color} strokeWidth="1.5" />
+      <path d="M2.5 16c.6-2.8 2.4-4.3 4.5-4.3s3.9 1.5 4.5 4.3" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M11.5 12.2c1.7.1 3 1.4 3.5 3.8" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
     </svg>
   )
 }

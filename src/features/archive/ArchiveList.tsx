@@ -6,9 +6,11 @@ import type { Draft } from '../../lib/drafts'
 import { Button } from '../../components/Button'
 import { VerifiedBadge } from '../../components/VerifiedBadge'
 import { usePageMeta } from '../../lib/usePageMeta'
+import { generatePortfolioPdf, downloadBlob } from '../../lib/pdfExport'
 
 interface ArchiveListProps {
   draft: Draft | null
+  handle: string
   onResumeDraft: (draft: Draft) => void
   onDiscardDraft: () => void
   onSelect: (session: Session) => void
@@ -16,12 +18,14 @@ interface ArchiveListProps {
 
 type FilterMode = 'all' | Mode
 
-export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: ArchiveListProps) {
+export function ArchiveList({ draft, handle, onResumeDraft, onDiscardDraft, onSelect }: ArchiveListProps) {
   usePageMeta({ title: 'Your Writings — Bema', description: 'Every session you have finished, kept word for word.' })
   const [sessions, setSessions] = useState<Session[]>([])
   const [filter, setFilter] = useState<FilterMode>('all')
   const [query, setQuery] = useState('')
   const [confirmingDiscard, setConfirmingDiscard] = useState(false)
+  const [exportMode, setExportMode] = useState(false)
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     loadSessions().then(setSessions)
@@ -35,6 +39,38 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
   }, [sessions, filter, query])
 
+  const handleEnterExportMode = () => {
+    setSelectedIds(new Set(sessions.filter((s) => s.published).map((s) => s.id)))
+    setExportMode(true)
+  }
+
+  const handleCancelExport = () => {
+    setExportMode(false)
+    setSelectedIds(new Set())
+  }
+
+  const toggleSelected = (id: string) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleExportPdf = () => {
+    const selected = sessions
+      .filter((s) => selectedIds.has(s.id))
+      .sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())
+    if (selected.length === 0) return
+    const blob = generatePortfolioPdf(
+      handle,
+      selected.map((s) => ({ topic: s.topic, mode: s.mode, content: s.content, durationMinutes: s.durationMinutes, createdAt: s.createdAt })),
+    )
+    downloadBlob(blob, `bema-portfolio-${handle}.pdf`)
+    handleCancelExport()
+  }
+
   return (
     <motion.div
       className="writings-page"
@@ -45,12 +81,17 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
     >
       <div className="writings-inner">
         <div className="writings-header">
-          <h1 className="writings-title">Your writings</h1>
-          <p className="writings-subtitle">
-            {sessions.length === 0
-              ? 'Every session you finish is kept here, word for word.'
-              : `${sessions.length} session${sessions.length === 1 ? '' : 's'} recorded so far.`}
-          </p>
+          <div>
+            <h1 className="writings-title">Your writings</h1>
+            <p className="writings-subtitle">
+              {sessions.length === 0
+                ? 'Every session you finish is kept here, word for word.'
+                : `${sessions.length} session${sessions.length === 1 ? '' : 's'} recorded so far.`}
+            </p>
+          </div>
+          {sessions.length > 0 && !exportMode && (
+            <Button onClick={handleEnterExportMode}>Export as PDF</Button>
+          )}
         </div>
 
         {draft && (
@@ -113,8 +154,8 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
               <motion.button
                 key={s.id}
                 type="button"
-                className="archive-card"
-                onClick={() => onSelect(s)}
+                className={['archive-card', exportMode && selectedIds.has(s.id) ? 'export-selected' : ''].filter(Boolean).join(' ')}
+                onClick={() => (exportMode ? toggleSelected(s.id) : onSelect(s))}
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: Math.min(i * 0.03, 0.3), duration: 0.3 }}
@@ -124,6 +165,9 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
                 <div className="archive-card-top">
                   <span className="archive-card-topic">{s.topic}</span>
                   <div className="archive-card-badges">
+                    {exportMode && (
+                      <span className={['export-checkbox', selectedIds.has(s.id) ? 'checked' : ''].filter(Boolean).join(' ')} aria-hidden="true" />
+                    )}
                     {s.verifiedUnaided && <VerifiedBadge size="sm" compact />}
                     <span className={`mode-pill ${s.mode}`}>{s.mode}</span>
                   </div>
@@ -132,6 +176,7 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
                   <span>{new Date(s.createdAt).toLocaleDateString()}</span>
                   <span>·</span>
                   <span>{s.durationMinutes} min</span>
+                  {s.published && <span className="export-published-tag">Published</span>}
                 </div>
                 <div className="archive-card-snippet">{s.content || 'No content.'}</div>
               </motion.button>
@@ -139,6 +184,18 @@ export function ArchiveList({ draft, onResumeDraft, onDiscardDraft, onSelect }: 
           </div>
         )}
       </div>
+
+      {exportMode && (
+        <motion.div className="export-bar" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}>
+          <span className="tabular">{selectedIds.size} selected</span>
+          <div className="option-row" style={{ maxWidth: 280 }}>
+            <Button variant="primary" onClick={handleExportPdf} disabled={selectedIds.size === 0}>
+              Download PDF
+            </Button>
+            <Button onClick={handleCancelExport}>Cancel</Button>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }

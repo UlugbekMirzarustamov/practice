@@ -39,6 +39,9 @@ import { NotificationsPage } from './features/notifications/NotificationsPage'
 import { loadUnreadNotificationCount } from './lib/notifications'
 import { ProfilePage } from './features/profile/ProfilePage'
 import { LeaderboardPage } from './features/leaderboard/LeaderboardPage'
+import { GroupsPage } from './features/groups/GroupsPage'
+import { GroupDetailPage } from './features/groups/GroupDetailPage'
+import { joinGroupByCode, type Group } from './lib/groups'
 import { SettingsPage } from './features/settings/SettingsPage'
 import { AdminPage } from './features/admin/AdminPage'
 
@@ -55,6 +58,8 @@ type Screen =
       topic: string
       isCustomTopic?: boolean
       difficulty?: Difficulty | null
+      forcedMode?: Mode
+      isDailyChallenge?: boolean
     }
   | {
       name: 'researching'
@@ -86,6 +91,7 @@ type Screen =
       initialContent?: string
       initialSecondsLeft?: number
       isCustomTopic?: boolean
+      isDailyChallenge?: boolean
     }
   | { name: 'feedback'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
   | { name: 'complete'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
@@ -96,6 +102,8 @@ type Screen =
   | { name: 'userProfile'; handle: string }
   | { name: 'notifications' }
   | { name: 'leaderboard' }
+  | { name: 'groups'; joinMessage?: string | null }
+  | { name: 'groupDetail'; group: Group }
   | { name: 'profile' }
   | { name: 'settings' }
   | { name: 'admin' }
@@ -107,6 +115,7 @@ function sidebarDestFor(screen: Screen): SidebarDest {
   if (screen.name === 'discover' || screen.name === 'userProfile') return 'discover'
   if (screen.name === 'notifications') return 'notifications'
   if (screen.name === 'leaderboard') return 'leaderboard'
+  if (screen.name === 'groups' || screen.name === 'groupDetail') return 'groups'
   if (screen.name === 'profile') return 'profile'
   if (screen.name === 'settings') return 'settings'
   if (screen.name === 'admin') return 'admin'
@@ -143,6 +152,15 @@ function AuthenticatedApp() {
 
   useEffect(() => {
     loadUnreadNotificationCount().then(setUnreadNotifications).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const code = new URLSearchParams(window.location.search).get('join')
+    if (!code) return
+    window.history.replaceState({}, '', window.location.pathname)
+    joinGroupByCode(code)
+      .then((g) => setScreen({ name: 'groups', joinMessage: `You joined ${g.name}.` }))
+      .catch(() => setScreen({ name: 'groups', joinMessage: "That invite code wasn't found." }))
   }, [])
 
   useEffect(() => {
@@ -209,6 +227,21 @@ function AuthenticatedApp() {
     })
   }
 
+  const handleStartChallenge = async (mode: Mode, topic: string) => {
+    await clearDraft()
+    setDraft(null)
+    setScreen({
+      name: 'revealing',
+      category: 'general',
+      format: 'cuff',
+      durationMinutes: 5,
+      topic,
+      isCustomTopic: true,
+      forcedMode: mode,
+      isDailyChallenge: true,
+    })
+  }
+
   const handleStartTrendingTopic = async (topic: string) => {
     await clearDraft()
     setDraft(null)
@@ -255,6 +288,7 @@ function AuthenticatedApp() {
       dangerSeconds: opts.dangerSeconds,
       topic,
       isCustomTopic: screen.isCustomTopic,
+      isDailyChallenge: screen.isDailyChallenge,
     })
   }
 
@@ -313,6 +347,7 @@ function AuthenticatedApp() {
       feedback,
       verifiedUnaided,
       isCustomTopic: screen.isCustomTopic,
+      isDailyChallenge: screen.isDailyChallenge,
     })
 
     const nextStats = await refreshStats()
@@ -398,6 +433,7 @@ function AuthenticatedApp() {
     else if (dest === 'discover') setScreen({ name: 'discover' })
     else if (dest === 'notifications') setScreen({ name: 'notifications' })
     else if (dest === 'leaderboard') setScreen({ name: 'leaderboard' })
+    else if (dest === 'groups') setScreen({ name: 'groups' })
     else if (dest === 'profile') setScreen({ name: 'profile' })
     else if (dest === 'settings') setScreen({ name: 'settings' })
     else if (dest === 'admin') setScreen({ name: 'admin' })
@@ -424,7 +460,13 @@ function AuthenticatedApp() {
         <ScrollProgress containerRef={mainRef} />
         <AnimatePresence mode="wait">
           {screen.name === 'setup' && (
-            <SessionSetup key="setup" stats={stats} onStart={handlePickTopic} onStartIelts={handlePickIelts} />
+            <SessionSetup
+              key="setup"
+              stats={stats}
+              onStart={handlePickTopic}
+              onStartIelts={handlePickIelts}
+              onStartChallenge={handleStartChallenge}
+            />
           )}
 
           {screen.name === 'revealing' && (
@@ -438,6 +480,7 @@ function AuthenticatedApp() {
               initialIeltsTopicLabel={screen.ieltsTopicLabel}
               isCustomTopic={screen.isCustomTopic}
               difficulty={screen.difficulty}
+              forcedMode={screen.forcedMode}
               onLeave={handleReset}
               onStart={handleSessionStart}
               onResearch={handleResearchStart}
@@ -512,6 +555,7 @@ function AuthenticatedApp() {
             <ArchiveList
               key="archive"
               draft={draft}
+              handle={profile.handle}
               onResumeDraft={handleResumeDraft}
               onDiscardDraft={handleDiscardDraft}
               onSelect={(session) => setScreen({ name: 'archiveDetail', session })}
@@ -541,6 +585,18 @@ function AuthenticatedApp() {
           )}
 
           {screen.name === 'leaderboard' && <LeaderboardPage key="leaderboard" />}
+
+          {screen.name === 'groups' && (
+            <GroupsPage
+              key="groups"
+              onOpenGroup={(group) => setScreen({ name: 'groupDetail', group })}
+              pendingJoinMessage={screen.joinMessage}
+            />
+          )}
+
+          {screen.name === 'groupDetail' && (
+            <GroupDetailPage key="groupDetail" group={screen.group} onBack={() => setScreen({ name: 'groups' })} />
+          )}
 
           {screen.name === 'profile' && (
             <ProfilePage key="profile" onOpenProfile={(handle) => setScreen({ name: 'userProfile', handle })} />

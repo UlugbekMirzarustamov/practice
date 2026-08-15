@@ -348,3 +348,11 @@ export function getRandomPrompt(category: Category = 'general', difficulty?: Dif
   const list = filtered.length > 0 ? filtered : pool
   return list[Math.floor(Math.random() * list.length)].text
 }
+
+/** Same pick for every caller with the same seed (e.g. today's UTC date) — used for the daily challenge, no server round trip needed. */
+export function getDeterministicPrompt(category: Category, seed: string): string {
+  const pool = PROMPTS_BY_CATEGORY[category]
+  let hash = 0
+  for (let i = 0; i < seed.length; i++) hash = (hash * 31 + seed.charCodeAt(i)) >>> 0
+  return pool[hash % pool.length].text
+}
