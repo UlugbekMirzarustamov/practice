@@ -73,10 +73,8 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, o
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      <div className="page-inner">
+      <div className="page-inner page-inner-wide">
         <span className="wordmark">Bema</span>
-
-        <DashboardHeader stats={stats} />
 
         <div className="dashboard-cards-row">
           <TodaysPlanCard stats={stats} onStartChallenge={onStartChallenge} />
@@ -229,34 +227,6 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, o
             {practiceType === 'general' && topicSource === 'custom' ? 'Use this topic' : 'Find my topic'}
           </Button>
         </div>
-      </div>
-    </motion.div>
-  )
-}
-
-function DashboardHeader({ stats }: { stats: Stats }) {
-  const progressPct = Math.max(0, Math.min(100, stats.level.progress * 100))
-  return (
-    <motion.div className="dashboard-header-bar" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-      <div className="dashboard-header-badge">
-        <span className="dashboard-header-badge-level">Lv {stats.level.level}</span>
-      </div>
-      <div className="dashboard-header-xp">
-        <div className="dashboard-xp-track">
-          <motion.div
-            className="dashboard-xp-fill"
-            initial={{ width: 0 }}
-            animate={{ width: `${progressPct}%` }}
-            transition={{ duration: 0.6, ease: 'easeOut' }}
-          />
-        </div>
-        <span className="dashboard-header-xp-label tabular">
-          {stats.level.xpIntoLevel}/{stats.level.xpForNextLevel} XP to Lv {stats.level.level + 1}
-        </span>
-      </div>
-      <div className="dashboard-header-streak">
-        <FlameIcon />
-        <span className="tabular">{stats.streak}</span>
       </div>
     </motion.div>
   )
@@ -529,17 +499,6 @@ function RivalCard() {
             : `You're behind by ${Math.abs(gap).toLocaleString()} XP.`}
       </p>
     </motion.div>
-  )
-}
-
-function FlameIcon() {
-  return (
-    <svg width="15" height="15" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M10 2c1 3-2.5 4-2.5 7a2.5 2.5 0 005 0c0-1-0.5-1.5-0.5-1.5 1.5 1 2.5 2.8 2.5 4.5a5 5 0 01-10 0C4.5 8 7 6.5 10 2z"
-        fill="var(--accent)"
-      />
-    </svg>
   )
 }
 

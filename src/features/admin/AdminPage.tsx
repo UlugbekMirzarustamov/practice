@@ -38,7 +38,7 @@ export function AdminPage() {
 
   return (
     <motion.div className="page" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.35 }}>
-      <div className="page-inner" style={{ maxWidth: 860 }}>
+      <div className="page-inner" style={{ maxWidth: 1000 }}>
         <h1 className="setup-title">Admin</h1>
         <p className="lede">
           Every user and their stats, straight from the server-computed tables. Full account deletion happens in the

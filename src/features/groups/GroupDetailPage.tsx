@@ -42,7 +42,7 @@ export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="page-inner" style={{ maxWidth: 640 }}>
+      <div className="page-inner" style={{ maxWidth: 800 }}>
         <button type="button" className="back-link" onClick={onBack}>
           &larr; Back to groups
         </button>

@@ -23,6 +23,7 @@ import { PublicSessionPage } from './features/share/PublicSessionPage'
 import { PrivacyPolicyPage } from './features/share/PrivacyPolicyPage'
 import { NotFoundPage } from './features/share/NotFoundPage'
 import { Sidebar, type SidebarDest } from './components/Sidebar'
+import { TopStatusBar } from './components/TopStatusBar'
 import { SessionSetup } from './features/session/SessionSetup'
 import { TopicReveal, type StartOptions } from './features/session/TopicReveal'
 import { ResearchPhase } from './features/session/ResearchPhase'
@@ -463,6 +464,14 @@ function AuthenticatedApp() {
 
       <div className="app-main" ref={mainRef}>
         <ScrollProgress containerRef={mainRef} />
+        {showSidebar && (
+          <TopStatusBar
+            stats={stats}
+            unreadNotifications={unreadNotifications}
+            onOpenNotifications={() => setScreen({ name: 'notifications' })}
+            scrollContainerRef={mainRef}
+          />
+        )}
         <AnimatePresence mode="wait">
           {screen.name === 'setup' && (
             <SessionSetup

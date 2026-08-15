@@ -28,7 +28,7 @@ export function LeaderboardPage() {
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="page-inner" style={{ maxWidth: 640 }}>
+      <div className="page-inner" style={{ maxWidth: 800 }}>
         <h1 className="setup-title">Leaderboard</h1>
         <p className="lede">Every real Bema user, ranked by all-time XP.</p>
 

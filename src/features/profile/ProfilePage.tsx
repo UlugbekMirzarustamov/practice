@@ -117,7 +117,7 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
 
   return (
     <motion.div className="page" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.35 }}>
-      <div className="page-inner" style={{ maxWidth: 720 }}>
+      <div className="page-inner" style={{ maxWidth: 900 }}>
         <div className="profile-header">
           <div className="profile-avatar-wrap">
             {profile.avatarDataUrl ? (
