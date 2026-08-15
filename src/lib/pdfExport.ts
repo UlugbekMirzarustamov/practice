@@ -66,7 +66,7 @@ function wrapText(text: string, maxWidth: number, size: number, bold: boolean): 
   return lines
 }
 
-function stringToLatin1Bytes(s: string): Uint8Array {
+function stringToLatin1Bytes(s: string): Uint8Array<ArrayBuffer> {
   const bytes = new Uint8Array(s.length)
   for (let i = 0; i < s.length; i++) bytes[i] = s.charCodeAt(i) & 0xff
   return bytes

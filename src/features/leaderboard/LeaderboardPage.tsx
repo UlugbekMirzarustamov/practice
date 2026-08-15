@@ -62,7 +62,7 @@ function LeaderboardRow({ entry, rank, isYou }: { entry: LeaderboardEntry; rank:
       )}
       <div className="leaderboard-identity">
         <span className="leaderboard-name">
-          {entry.displayName}
+          <span className="leaderboard-name-text">{entry.displayName}</span>
           {isYou && <span className="you-badge">You</span>}
         </span>
         <span className="leaderboard-handle tabular">@{entry.handle}</span>

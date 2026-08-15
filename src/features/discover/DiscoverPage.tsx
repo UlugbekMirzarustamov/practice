@@ -130,7 +130,9 @@ export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps)
                     <span className="leaderboard-avatar-fallback">{nameInitials(u.displayName)}</span>
                   )}
                   <div className="leaderboard-identity">
-                    <span className="leaderboard-name">{u.displayName}</span>
+                    <span className="leaderboard-name">
+                      <span className="leaderboard-name-text">{u.displayName}</span>
+                    </span>
                     <span className="leaderboard-handle tabular">@{u.handle}</span>
                   </div>
                   <span className="leaderboard-level tabular">Lv {u.level}</span>

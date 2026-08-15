@@ -21,7 +21,10 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
   const [error, setError] = useState<string | null>(null)
 
   const refresh = () => loadMyGroups().then(setGroups)
-  useEffect(refresh, [])
+  useEffect(() => {
+    refresh()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const handleCreate = async () => {
     if (!name.trim()) return

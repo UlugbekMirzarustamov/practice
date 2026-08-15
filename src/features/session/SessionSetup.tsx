@@ -419,7 +419,7 @@ function LeaderboardCard({ onOpenLeaderboard }: { onOpenLeaderboard: () => void 
               )}
               <div className="leaderboard-identity">
                 <span className="leaderboard-name">
-                  {e.displayName}
+                  <span className="leaderboard-name-text">{e.displayName}</span>
                   {e.userId === user?.id && <span className="you-badge">You</span>}
                 </span>
                 <span className="leaderboard-handle tabular">@{e.handle}</span>
