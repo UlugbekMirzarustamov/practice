@@ -294,6 +294,7 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
   const [comments, setComments] = useState<Comment[]>([])
   const [draftComment, setDraftComment] = useState('')
   const [copied, setCopied] = useState(false)
+  const [confirmingUnpublish, setConfirmingUnpublish] = useState(false)
 
   useEffect(() => {
     if (showComments) loadComments(session.id).then(setComments)
@@ -346,9 +347,21 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
         <button type="button" className="post-action" onClick={handleShare}>
           <ShareIcon /> {copied ? 'Link copied' : 'Share'}
         </button>
-        <button type="button" className="text-link give-up" style={{ marginLeft: 'auto' }} onClick={() => onUnpublish(session.id)}>
-          Unpublish
-        </button>
+        {!confirmingUnpublish ? (
+          <button type="button" className="text-link give-up" style={{ marginLeft: 'auto' }} onClick={() => setConfirmingUnpublish(true)}>
+            Unpublish
+          </button>
+        ) : (
+          <div className="give-up-confirm">
+            <span>Unpublish this session?</span>
+            <button type="button" className="give-up-yes" onClick={() => onUnpublish(session.id)}>
+              Yes
+            </button>
+            <button type="button" className="give-up-no" onClick={() => setConfirmingUnpublish(false)}>
+              No
+            </button>
+          </div>
+        )}
       </div>
 
       {showComments && (
