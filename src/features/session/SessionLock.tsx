@@ -12,7 +12,7 @@ import { SessionOptionsPanel, EyeIcon, EyeOffIcon } from './SessionOptionsPanel'
 import { FormattingDock } from './FormattingDock'
 import { FirstSessionGuide } from './FirstSessionGuide'
 import { loadWritingPrefs, saveWritingPrefs, type WritingPrefs } from '../../lib/writingPrefs'
-import { playKeystroke, startAmbient, stopAmbient, primeAudio } from '../../lib/sound'
+import { playKeystroke, startAmbient, stopAmbient, primeAudio, playDangerWarningChime } from '../../lib/sound'
 import { analyzeSpeakingFeedback, analyzeWritingFeedback } from '../../lib/sessionAnalysis'
 
 interface SessionLockProps {
@@ -113,6 +113,20 @@ export function SessionLock({
 
   const { secondsRemaining: leaveSecondsRemaining } = useLeaveGuard(!guideOpen, handleLeaveTimeout)
   const { silentSeconds } = useInactivityFail(dangerEnabled && !guideOpen, dangerSeconds, finalContent, onFail)
+  const dangerWarnedRef = useRef(false)
+
+  useEffect(() => {
+    if (!dangerEnabled) return
+    const remaining = dangerSeconds - silentSeconds
+    if (remaining <= 3 && remaining > 0) {
+      if (!dangerWarnedRef.current) {
+        dangerWarnedRef.current = true
+        playDangerWarningChime()
+      }
+    } else if (remaining > 3) {
+      dangerWarnedRef.current = false
+    }
+  }, [dangerEnabled, dangerSeconds, silentSeconds])
 
   const dismissGuide = () => {
     setGuideOpen(false)

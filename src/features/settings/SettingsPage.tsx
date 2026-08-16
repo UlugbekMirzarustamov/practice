@@ -92,7 +92,8 @@ export function SettingsPage({
             <div>
               <span className="options-panel-label">Sound effects</span>
               <p className="option-hint" style={{ margin: 0 }}>
-                A short chime when a session completes, on by default.
+                Short chimes for session start, the Dangerous Mode countdown, completion, and milestones. On by
+                default.
               </p>
             </div>
             <button

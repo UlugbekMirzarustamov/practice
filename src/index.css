@@ -59,6 +59,25 @@
   box-sizing: border-box;
 }
 
+/*
+ * Blanket press feedback for every plain button/clickable element app-wide.
+ * Components with their own Motion whileTap (Button, OptionToggle, ...) set
+ * transform inline, which always wins over this stylesheet rule, so this
+ * only visibly applies where nothing else already provides press feedback.
+ */
+button:not(:disabled),
+[role='button'] {
+  transition:
+    transform 0.1s ease,
+    opacity 0.1s ease;
+}
+
+button:not(:disabled):active,
+[role='button']:active {
+  transform: scale(0.96);
+  opacity: 0.85;
+}
+
 html,
 body {
   height: 100%;

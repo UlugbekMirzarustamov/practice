@@ -13,7 +13,7 @@ import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/
 import { loadStats, checkAndUnlockMilestones, type Stats } from './lib/gamification'
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
 import { loadProfile, markGuideSeen, type Profile } from './lib/profile'
-import { primeAudio, playCompleteChime, playMilestoneChime, vibrate } from './lib/sound'
+import { primeAudio, playSessionStartChime, playCompleteChime, playMilestoneChime, vibrate } from './lib/sound'
 import { loadSoundEnabled, saveSoundEnabled } from './lib/soundPrefs'
 import { useAuth } from './lib/auth'
 import { AuthPage } from './features/auth/AuthPage'
@@ -276,6 +276,7 @@ function AuthenticatedApp() {
 
   const handleSessionStart = (mode: Mode, topic: string, opts: StartOptions) => {
     if (screen.name !== 'revealing') return
+    playSessionStartChime()
     setScreen({
       name: 'locked',
       mode,
@@ -314,6 +315,7 @@ function AuthenticatedApp() {
 
   const handleResearchDone = () => {
     if (screen.name !== 'researching') return
+    playSessionStartChime()
     setScreen({
       name: 'locked',
       mode: screen.mode,
@@ -354,19 +356,15 @@ function AuthenticatedApp() {
     const nextStats = await refreshStats()
     setScreen({ name: 'feedback', session, prevStats, nextStats, wasFirstEver })
 
-    if (soundEnabled) {
-      playCompleteChime()
-      vibrate(30)
-    }
+    playCompleteChime()
+    if (soundEnabled) vibrate(30)
 
     checkAndUnlockMilestones()
       .then((ids) => {
         if (ids.length) {
           setPendingMilestones((existing) => [...existing, ...ids])
-          if (soundEnabled) {
-            playMilestoneChime()
-            vibrate([30, 60, 30])
-          }
+          playMilestoneChime()
+          if (soundEnabled) vibrate([30, 60, 30])
         }
       })
       .catch(() => {})

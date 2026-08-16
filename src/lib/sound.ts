@@ -1,4 +1,5 @@
 import type { AmbientSound, TypingSoundStyle } from './writingPrefs'
+import { loadSoundEnabled } from './soundPrefs'
 
 let ctx: AudioContext | null = null
 
@@ -37,19 +38,48 @@ export function playSettleChime(): void {
   tone(880, 0.28, 'sine', 0.045, 0.09)
 }
 
+/**
+ * Session start, danger-countdown warning, session complete, and milestone unlock all check the
+ * "Sound effects" Settings toggle internally, so no caller can forget to gate them — the toggle
+ * mutes all four at once by construction, not by convention.
+ */
+function playIfEnabled(play: () => void): void {
+  if (loadSoundEnabled()) play()
+}
+
+/** Short "locked in, go" cue right as a session's timer starts. */
+export function playSessionStartChime(): void {
+  playIfEnabled(() => {
+    tone(392, 0.09, 'sine', 0.045)
+    tone(523.25, 0.16, 'sine', 0.05, 0.07)
+  })
+}
+
+/** Soft double-beep, once, the moment Dangerous Mode's silence countdown enters its final few seconds. */
+export function playDangerWarningChime(): void {
+  playIfEnabled(() => {
+    tone(880, 0.09, 'sine', 0.05)
+    tone(880, 0.09, 'sine', 0.045, 0.14)
+  })
+}
+
 /** Short, subtle arpeggio for a normal session completion. Plays every session — kept brief on purpose. */
 export function playCompleteChime(): void {
-  tone(523.25, 0.15, 'sine', 0.05)
-  tone(659.25, 0.15, 'sine', 0.045, 0.08)
-  tone(783.99, 0.26, 'sine', 0.05, 0.16)
+  playIfEnabled(() => {
+    tone(523.25, 0.15, 'sine', 0.05)
+    tone(659.25, 0.15, 'sine', 0.045, 0.08)
+    tone(783.99, 0.26, 'sine', 0.05, 0.16)
+  })
 }
 
 /** Bigger, distinct fanfare for milestone unlocks — still under a second, just brighter and longer than the normal chime. */
 export function playMilestoneChime(): void {
-  tone(523.25, 0.12, 'sine', 0.055)
-  tone(659.25, 0.12, 'sine', 0.05, 0.09)
-  tone(783.99, 0.12, 'sine', 0.05, 0.18)
-  tone(1046.5, 0.4, 'sine', 0.06, 0.27)
+  playIfEnabled(() => {
+    tone(523.25, 0.12, 'sine', 0.055)
+    tone(659.25, 0.12, 'sine', 0.05, 0.09)
+    tone(783.99, 0.12, 'sine', 0.05, 0.18)
+    tone(1046.5, 0.4, 'sine', 0.06, 0.27)
+  })
 }
 
 /** Best-effort haptic tap. No-ops silently on browsers/devices without vibration support. */
