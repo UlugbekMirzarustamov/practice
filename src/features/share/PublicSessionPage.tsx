@@ -14,6 +14,7 @@ import { useAuth } from '../../lib/auth'
 import { Button } from '../../components/Button'
 import { VerifiedBadge } from '../../components/VerifiedBadge'
 import { usePageMeta } from '../../lib/usePageMeta'
+import { primeAudio, playUiTick, playPositiveChime } from '../../lib/sound'
 
 interface PublicSessionPageProps {
   sessionId: string
@@ -66,10 +67,12 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       onTryFree()
       return
     }
+    primeAudio()
     setLikeBusy(true)
     try {
       const nowLiked = await toggleSessionLike(session.id)
       setSession({ ...session, likedByMe: nowLiked, likeCount: session.likeCount + (nowLiked ? 1 : -1) })
+      if (nowLiked) playPositiveChime()
     } finally {
       setLikeBusy(false)
     }
@@ -81,10 +84,12 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       onTryFree()
       return
     }
+    primeAudio()
     setSaveBusy(true)
     try {
       const nowSaved = await toggleSaveSession(session.id)
       setSession({ ...session, savedByMe: nowSaved })
+      if (nowSaved) playPositiveChime()
     } finally {
       setSaveBusy(false)
     }
@@ -97,12 +102,14 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       onTryFree()
       return
     }
+    primeAudio()
     setPosting(true)
     try {
       const comment = await addSessionComment(session.id, text)
       setComments((prev) => [...(prev ?? []), comment])
       setSession({ ...session, commentCount: session.commentCount + 1 })
       setDraftComment('')
+      playUiTick()
     } finally {
       setPosting(false)
     }

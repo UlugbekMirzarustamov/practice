@@ -13,7 +13,16 @@ import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/
 import { loadStats, checkAndUnlockMilestones, type Stats } from './lib/gamification'
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
 import { loadProfile, markGuideSeen, type Profile } from './lib/profile'
-import { primeAudio, playSessionStartChime, playCompleteChime, playMilestoneChime, vibrate } from './lib/sound'
+import {
+  primeAudio,
+  playSessionStartChime,
+  playCompleteChime,
+  playMilestoneChime,
+  playUiTick,
+  playToggleTick,
+  playNotificationDing,
+  vibrate,
+} from './lib/sound'
 import { loadSoundEnabled, saveSoundEnabled } from './lib/soundPrefs'
 import { useAuth } from './lib/auth'
 import { AuthPage } from './features/auth/AuthPage'
@@ -151,8 +160,25 @@ function AuthenticatedApp() {
   const [soundEnabled, setSoundEnabled] = useState<boolean>(() => loadSoundEnabled())
   const mainRef = useRef<HTMLDivElement>(null)
 
+  const unreadNotificationsRef = useRef(0)
+  useEffect(() => {
+    unreadNotificationsRef.current = unreadNotifications
+  }, [unreadNotifications])
+
   useEffect(() => {
     loadUnreadNotificationCount().then(setUnreadNotifications).catch(() => {})
+  }, [])
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      loadUnreadNotificationCount()
+        .then((count) => {
+          if (count > unreadNotificationsRef.current) playNotificationDing()
+          setUnreadNotifications(count)
+        })
+        .catch(() => {})
+    }, 45000)
+    return () => clearInterval(interval)
   }, [])
 
   useEffect(() => {
@@ -189,12 +215,18 @@ function AuthenticatedApp() {
     return next
   }
 
-  const toggleTheme = () => setTheme((t) => (t === 'dark' ? 'light' : 'dark'))
+  const toggleTheme = () =>
+    setTheme((t) => {
+      const next = t === 'dark' ? 'light' : 'dark'
+      playToggleTick(next === 'light')
+      return next
+    })
 
   const toggleSound = () => {
     setSoundEnabled((v) => {
       const next = !v
       saveSoundEnabled(next)
+      playToggleTick(next)
       return next
     })
   }
@@ -203,6 +235,7 @@ function AuthenticatedApp() {
     setSidebarCollapsed((c) => {
       const next = !c
       saveSidebarCollapsedDefault(next)
+      playToggleTick(next)
       return next
     })
   }
@@ -432,6 +465,7 @@ function AuthenticatedApp() {
   const goArchive = () => setScreen({ name: 'archive' })
 
   const handleSidebarNavigate = (dest: SidebarDest) => {
+    playUiTick()
     if (dest === 'dashboard') setScreen({ name: 'setup' })
     else if (dest === 'archive') setScreen({ name: 'archive' })
     else if (dest === 'discover') setScreen({ name: 'discover' })
@@ -668,6 +702,8 @@ function App() {
       <PublicSessionPage
         sessionId={shareMatch[1]}
         onTryFree={() => {
+          primeAudio()
+          playUiTick()
           window.history.pushState({}, '', '/')
           setPublicView({ name: 'trialPicker' })
         }}
@@ -746,7 +782,20 @@ function App() {
     )
   }
 
-  return <LandingPage onEnter={() => setPublicView({ name: 'auth' })} onTryFree={() => setPublicView({ name: 'trialPicker' })} />
+  return (
+    <LandingPage
+      onEnter={() => {
+        primeAudio()
+        playUiTick()
+        setPublicView({ name: 'auth' })
+      }}
+      onTryFree={() => {
+        primeAudio()
+        playUiTick()
+        setPublicView({ name: 'trialPicker' })
+      }}
+    />
+  )
 }
 
 export default App

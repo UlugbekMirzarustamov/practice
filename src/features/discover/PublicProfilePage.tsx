@@ -12,6 +12,7 @@ import {
 import { VerifiedBadge } from '../../components/VerifiedBadge'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
+import { primeAudio, playPositiveChime } from '../../lib/sound'
 
 interface PublicProfilePageProps {
   handle: string
@@ -40,6 +41,7 @@ export function PublicProfilePage({ handle, onBack }: PublicProfilePageProps) {
 
   const toggleFollow = async () => {
     if (!profile || followBusy) return
+    primeAudio()
     setFollowBusy(true)
     try {
       if (profile.isFollowing) {
@@ -48,6 +50,7 @@ export function PublicProfilePage({ handle, onBack }: PublicProfilePageProps) {
       } else {
         await followUser(profile.userId)
         setProfile({ ...profile, isFollowing: true, followerCount: profile.followerCount + 1 })
+        playPositiveChime()
       }
     } finally {
       setFollowBusy(false)

@@ -7,6 +7,7 @@ import { computeAchievements, CATEGORY_LABELS, type AchievementCategory } from '
 import { loadProfile, updateProfile, initials, type Profile } from '../../lib/profile'
 import { loadSavedSessions, type SavedEntry } from '../../lib/discover'
 import { toggleSaveSession } from '../../lib/publicSession'
+import { primeAudio, playUiTick, playPositiveChime } from '../../lib/sound'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
 
@@ -76,6 +77,7 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
       setSaveError('Username needs to be at least 3 characters (letters, numbers, underscore only).')
       return
     }
+    primeAudio()
     setSaving(true)
     const { error } = await updateProfile({
       displayName: draftName.trim() || profile.handle,
@@ -87,6 +89,7 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
       setSaveError(error.message)
       return
     }
+    playUiTick()
     refresh()
     setEditing(false)
   }
@@ -301,16 +304,21 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
   }, [showComments, session.id])
 
   const toggleLike = async () => {
-    await updateSession(session.id, { liked: !session.liked })
+    primeAudio()
+    const willLike = !session.liked
+    await updateSession(session.id, { liked: willLike })
+    if (willLike) playPositiveChime()
     onChange()
   }
 
   const submitComment = async () => {
     const text = draftComment.trim()
     if (!text) return
+    primeAudio()
     const comment = await addComment(session.id, text)
     setComments((prev) => [...prev, comment])
     setDraftComment('')
+    playUiTick()
   }
 
   const handleShare = async () => {

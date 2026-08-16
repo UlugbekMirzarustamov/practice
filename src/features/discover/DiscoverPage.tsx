@@ -13,7 +13,7 @@ import { toggleSaveSession } from '../../lib/publicSession'
 import { VerifiedBadge } from '../../components/VerifiedBadge'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
-import { primeAudio } from '../../lib/sound'
+import { primeAudio, playPositiveChime } from '../../lib/sound'
 
 interface DiscoverPageProps {
   onOpenProfile: (handle: string) => void
@@ -174,9 +174,12 @@ function DiscoverCard({ entry, onOpenProfile }: { entry: DiscoverEntry; onOpenPr
   const handleToggleSave = async (e: React.MouseEvent) => {
     e.stopPropagation()
     if (busy) return
+    primeAudio()
     setBusy(true)
     try {
-      setSaved(await toggleSaveSession(entry.id))
+      const nowSaved = await toggleSaveSession(entry.id)
+      setSaved(nowSaved)
+      if (nowSaved) playPositiveChime()
     } finally {
       setBusy(false)
     }

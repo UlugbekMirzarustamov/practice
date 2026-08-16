@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { loadMyGroups, createGroup, joinGroupByCode, type Group } from '../../lib/groups'
+import { primeAudio, playUiTick } from '../../lib/sound'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
 
@@ -28,6 +29,7 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
 
   const handleCreate = async () => {
     if (!name.trim()) return
+    primeAudio()
     setCreating(true)
     setError(null)
     try {
@@ -36,6 +38,7 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
       setDescription('')
       setShowCreate(false)
       refresh()
+      playUiTick()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Could not create group')
     } finally {
@@ -46,6 +49,7 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
   const handleJoin = async () => {
     const raw = joinCode.trim()
     if (!raw) return
+    primeAudio()
     setJoining(true)
     setError(null)
     try {
@@ -53,6 +57,7 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
       await joinGroupByCode(code)
       setJoinCode('')
       refresh()
+      playUiTick()
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Invite code not found')
     } finally {

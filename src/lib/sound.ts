@@ -50,35 +50,66 @@ function playIfEnabled(play: () => void): void {
 /** Short "locked in, go" cue right as a session's timer starts. */
 export function playSessionStartChime(): void {
   playIfEnabled(() => {
-    tone(392, 0.09, 'sine', 0.045)
-    tone(523.25, 0.16, 'sine', 0.05, 0.07)
+    tone(392, 0.11, 'sine', 0.17)
+    tone(523.25, 0.2, 'sine', 0.2, 0.08)
   })
 }
 
-/** Soft double-beep, once, the moment Dangerous Mode's silence countdown enters its final few seconds. */
+/** Bright, urgent double-beep, once, the moment Dangerous Mode's silence countdown enters its final few seconds. */
 export function playDangerWarningChime(): void {
   playIfEnabled(() => {
-    tone(880, 0.09, 'sine', 0.05)
-    tone(880, 0.09, 'sine', 0.045, 0.14)
+    tone(880, 0.1, 'triangle', 0.22)
+    tone(880, 0.1, 'triangle', 0.22, 0.15)
   })
 }
 
-/** Short, subtle arpeggio for a normal session completion. Plays every session — kept brief on purpose. */
+/** Ascending three-note arpeggio for a normal session completion. Plays every session. */
 export function playCompleteChime(): void {
   playIfEnabled(() => {
-    tone(523.25, 0.15, 'sine', 0.05)
-    tone(659.25, 0.15, 'sine', 0.045, 0.08)
-    tone(783.99, 0.26, 'sine', 0.05, 0.16)
+    tone(523.25, 0.16, 'sine', 0.2)
+    tone(659.25, 0.16, 'sine', 0.19, 0.09)
+    tone(783.99, 0.28, 'sine', 0.22, 0.18)
   })
 }
 
-/** Bigger, distinct fanfare for milestone unlocks — still under a second, just brighter and longer than the normal chime. */
+/** Bigger, distinct fanfare for milestone unlocks — a fifth layered under the final note for extra richness. */
 export function playMilestoneChime(): void {
   playIfEnabled(() => {
-    tone(523.25, 0.12, 'sine', 0.055)
-    tone(659.25, 0.12, 'sine', 0.05, 0.09)
-    tone(783.99, 0.12, 'sine', 0.05, 0.18)
-    tone(1046.5, 0.4, 'sine', 0.06, 0.27)
+    tone(523.25, 0.13, 'sine', 0.22)
+    tone(659.25, 0.13, 'sine', 0.22, 0.1)
+    tone(783.99, 0.13, 'sine', 0.24, 0.2)
+    tone(1046.5, 0.42, 'sine', 0.28, 0.3)
+    tone(1318.51, 0.36, 'sine', 0.14, 0.32)
+  })
+}
+
+/** Quick, percussive tick for neutral interactions: navigation, primary-action buttons, submits. */
+export function playUiTick(): void {
+  playIfEnabled(() => {
+    tone(540, 0.05, 'triangle', 0.14)
+  })
+}
+
+/** Toggle-switch tick — pitches up when switching on, down when switching off. */
+export function playToggleTick(on: boolean): void {
+  playIfEnabled(() => {
+    tone(on ? 660 : 400, 0.065, 'triangle', 0.16)
+  })
+}
+
+/** Warm two-note rise for "positive" interactions: like, follow, save, achievement progress. */
+export function playPositiveChime(): void {
+  playIfEnabled(() => {
+    tone(587.33, 0.09, 'sine', 0.18)
+    tone(880, 0.15, 'sine', 0.16, 0.06)
+  })
+}
+
+/** Bright, high bell ding for a new notification arriving. */
+export function playNotificationDing(): void {
+  playIfEnabled(() => {
+    tone(1318.51, 0.12, 'sine', 0.15)
+    tone(1760, 0.22, 'sine', 0.09, 0.05)
   })
 }
 

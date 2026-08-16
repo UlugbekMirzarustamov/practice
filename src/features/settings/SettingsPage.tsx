@@ -92,8 +92,8 @@ export function SettingsPage({
             <div>
               <span className="options-panel-label">Sound effects</span>
               <p className="option-hint" style={{ margin: 0 }}>
-                Short chimes for session start, the Dangerous Mode countdown, completion, and milestones. On by
-                default.
+                Chimes and ticks for session moments, navigation, toggles, likes, follows, and notifications. On
+                by default.
               </p>
             </div>
             <button
