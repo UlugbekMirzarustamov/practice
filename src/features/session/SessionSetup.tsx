@@ -20,10 +20,13 @@ import { loadRecentActivity, type RecentActivity } from '../../lib/storage'
 import { loadLeaderboard, type LeaderboardEntry } from '../../lib/leaderboard'
 import { useAuth } from '../../lib/auth'
 import { WeekCalendarRow } from '../../components/WeekCalendarRow'
+import { hasAnsweredOnboardingIntent, saveOnboardingIntent, type OnboardingIntent } from '../../lib/onboardingIntent'
 
 type PracticeType = 'general' | 'ielts'
 
 type TopicSource = 'random' | 'custom'
+
+const CURIOUS_CATEGORIES: Category[] = ['arts', 'science', 'astronomy', 'history']
 
 interface SessionSetupProps {
   stats: Stats
@@ -50,9 +53,28 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, o
   const [topicSource, setTopicSource] = useState<TopicSource>('random')
   const [customTopic, setCustomTopic] = useState('')
   const [difficulty, setDifficulty] = useState<Difficulty | null>(null)
+  const [showIntentPrompt, setShowIntentPrompt] = useState(() => stats.sessionCount === 0 && !hasAnsweredOnboardingIntent())
 
   const trimmedCustomTopic = customTopic.trim()
   const canStart = practiceType === 'ielts' || topicSource === 'random' || trimmedCustomTopic.length > 0
+
+  const handlePickIntent = (intent: OnboardingIntent) => {
+    saveOnboardingIntent(intent)
+    setShowIntentPrompt(false)
+    if (intent === 'prepping') {
+      setDifficulty('hard')
+    } else if (intent === 'habit') {
+      setDifficulty('easy')
+    } else {
+      setCategory(CURIOUS_CATEGORIES[Math.floor(Math.random() * CURIOUS_CATEGORIES.length)])
+      setDifficulty(null)
+    }
+  }
+
+  const handleSkipIntent = () => {
+    saveOnboardingIntent(null)
+    setShowIntentPrompt(false)
+  }
 
   const handleStart = () => {
     if (!canStart) return
@@ -74,6 +96,35 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, o
     >
       <div className="page-inner page-inner-wide">
         <span className="wordmark">Bema</span>
+
+        {showIntentPrompt && (
+          <motion.div className="dashboard-card onboarding-intent-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+            <div className="dashboard-card-top">
+              <span className="dashboard-card-eyebrow">Quick one before you start</span>
+              <button type="button" className="text-link" onClick={handleSkipIntent}>
+                Skip
+              </button>
+            </div>
+            <p className="onboarding-intent-question">What brings you here?</p>
+            <div className="option-row">
+              <OptionToggle
+                groupId="intent"
+                label="Prepping for something"
+                tagline="An exam, interview, or speech"
+                selected={false}
+                onClick={() => handlePickIntent('prepping')}
+              />
+              <OptionToggle
+                groupId="intent"
+                label="Building a habit"
+                tagline="Just want to practice regularly"
+                selected={false}
+                onClick={() => handlePickIntent('habit')}
+              />
+              <OptionToggle groupId="intent" label="Just curious" tagline="Seeing what this is" selected={false} onClick={() => handlePickIntent('curious')} />
+            </div>
+          </motion.div>
+        )}
 
         <div className="dashboard-cards-row">
           <TodaysPlanCard stats={stats} onStartChallenge={onStartChallenge} />

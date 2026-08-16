@@ -146,7 +146,9 @@ export function ArchiveList({ draft, handle, onResumeDraft, onDiscardDraft, onSe
 
         {filtered.length === 0 ? (
           <div className="archive-empty">
-            {sessions.length === 0 ? 'No sessions yet. Finish one to see it here.' : 'Nothing matches your search.'}
+            {sessions.length === 0
+              ? "Empty, for now. This fills up the moment you finish your first locked session — no drafts, no do-overs, just what you actually wrote."
+              : 'Nothing matches that search. Try a different word.'}
           </div>
         ) : (
           <div className="archive-list">

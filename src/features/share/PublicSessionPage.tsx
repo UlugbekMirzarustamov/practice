@@ -188,7 +188,7 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
               {!comments ? (
                 <span className="option-hint">Loading comments...</span>
               ) : comments.length === 0 ? (
-                <span className="option-hint">No comments yet.</span>
+                <span className="option-hint">No comments yet. Say something true about it.</span>
               ) : (
                 comments.map((c) => (
                   <div key={c.id} className="post-comment">

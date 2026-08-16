@@ -54,7 +54,9 @@ export function NotificationsPage({ onOpenProfile, onRead }: NotificationsPagePr
         {!items ? (
           <p className="lede">Loading...</p>
         ) : items.length === 0 ? (
-          <div className="archive-empty">Nothing yet. Publish a session or follow someone to get things moving.</div>
+          <div className="archive-empty">
+            Quiet in here. Publish something or follow a few people, and this fills up on its own.
+          </div>
         ) : (
           <div className="notification-list">
             {items.map((n) => (

@@ -41,6 +41,7 @@ import { SessionFeedbackReport } from './features/session/SessionFeedbackReport'
 import { SessionComplete } from './features/session/SessionComplete'
 import { MilestoneCelebration } from './features/gamification/MilestoneCelebration'
 import { SessionFailed } from './features/session/SessionFailed'
+import { SessionSaveFailed } from './features/session/SessionSaveFailed'
 import { ArchiveList } from './features/archive/ArchiveList'
 import { ArchiveDetail } from './features/archive/ArchiveDetail'
 import { DiscoverPage } from './features/discover/DiscoverPage'
@@ -106,6 +107,14 @@ type Screen =
   | { name: 'feedback'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
   | { name: 'complete'; session: Session; prevStats: Stats; nextStats: Stats; wasFirstEver: boolean }
   | { name: 'failed' }
+  | {
+      name: 'saveFailed'
+      content: string
+      feedback: SessionFeedback
+      verifiedUnaided: boolean
+      draftBackedUp: boolean
+      source: Extract<Screen, { name: 'locked' }>
+    }
   | { name: 'archive' }
   | { name: 'archiveDetail'; session: Session }
   | { name: 'discover' }
@@ -365,26 +374,32 @@ function AuthenticatedApp() {
     })
   }
 
-  const handleComplete = async (content: string, feedback: SessionFeedback, verifiedUnaided: boolean) => {
-    if (screen.name !== 'locked') return
-    await clearDraft()
-    setDraft(null)
+  const attemptSaveSession = async (
+    source: Extract<Screen, { name: 'locked' }>,
+    content: string,
+    feedback: SessionFeedback,
+    verifiedUnaided: boolean,
+  ) => {
     const prevStats = stats ?? (await loadStats())
     const wasFirstEver = prevStats.sessionCount === 0
 
     const session = await createSession({
-      mode: screen.mode,
-      category: screen.ielts ? (`ielts-${screen.ielts}` as const) : screen.category,
-      format: screen.format,
-      ieltsPart: screen.ielts,
-      topic: screen.topic,
-      durationMinutes: screen.durationMinutes,
+      mode: source.mode,
+      category: source.ielts ? (`ielts-${source.ielts}` as const) : source.category,
+      format: source.format,
+      ieltsPart: source.ielts,
+      topic: source.topic,
+      durationMinutes: source.durationMinutes,
       content,
       feedback,
       verifiedUnaided,
-      isCustomTopic: screen.isCustomTopic,
-      isDailyChallenge: screen.isDailyChallenge,
+      isCustomTopic: source.isCustomTopic,
+      isDailyChallenge: source.isDailyChallenge,
     })
+
+    // Only clear the draft once the session is confirmed saved — never before.
+    await clearDraft().catch(() => {})
+    setDraft(null)
 
     const nextStats = await refreshStats()
     setScreen({ name: 'feedback', session, prevStats, nextStats, wasFirstEver })
@@ -401,6 +416,46 @@ function AuthenticatedApp() {
         }
       })
       .catch(() => {})
+  }
+
+  const handleComplete = async (content: string, feedback: SessionFeedback, verifiedUnaided: boolean) => {
+    if (screen.name !== 'locked') return
+    const source = screen
+    try {
+      await attemptSaveSession(source, content, feedback, verifiedUnaided)
+    } catch {
+      // The save failed, so the finished writing only exists in memory right now. Back it up as a
+      // draft on a best-effort basis, but either way it stays visible on the save-failed screen —
+      // that's the guarantee, not the draft backup.
+      let draftBackedUp = false
+      try {
+        await saveDraft({
+          mode: source.mode,
+          topic: source.topic,
+          category: source.category,
+          format: source.format,
+          ielts: source.ielts,
+          ieltsQuestions: source.ieltsQuestions,
+          ieltsTopicLabel: source.ieltsTopicLabel,
+          durationMinutes: source.durationMinutes,
+          dangerEnabled: source.dangerEnabled,
+          dangerSeconds: source.dangerSeconds,
+          content,
+          secondsLeft: 0,
+          isCustomTopic: source.isCustomTopic,
+          isDailyChallenge: source.isDailyChallenge,
+        })
+        setDraft(await loadDraft())
+        draftBackedUp = true
+      } catch {
+        // best-effort only; the content is still shown on the save-failed screen regardless
+      }
+      setScreen({ name: 'saveFailed', content, feedback, verifiedUnaided, draftBackedUp, source })
+    }
+  }
+
+  const handleRetrySaveSession = async (saveFailedScreen: Extract<Screen, { name: 'saveFailed' }>) => {
+    await attemptSaveSession(saveFailedScreen.source, saveFailedScreen.content, saveFailedScreen.feedback, saveFailedScreen.verifiedUnaided)
   }
 
   const handleFail = async () => {
@@ -596,6 +651,16 @@ function AuthenticatedApp() {
           )}
 
           {screen.name === 'failed' && <SessionFailed key="failed" onDone={handleReset} />}
+
+          {screen.name === 'saveFailed' && (
+            <SessionSaveFailed
+              key="saveFailed"
+              content={screen.content}
+              draftBackedUp={screen.draftBackedUp}
+              onRetry={() => handleRetrySaveSession(screen)}
+              onDiscard={handleReset}
+            />
+          )}
 
           {screen.name === 'archive' && (
             <ArchiveList

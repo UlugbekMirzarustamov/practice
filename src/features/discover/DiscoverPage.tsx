@@ -120,7 +120,7 @@ export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps)
             {searching ? (
               <p className="lede">Searching...</p>
             ) : results && results.length === 0 ? (
-              <div className="archive-empty">No users match &ldquo;{query.trim()}&rdquo;.</div>
+              <div className="archive-empty">No one goes by &ldquo;{query.trim()}&rdquo; here yet.</div>
             ) : (
               results?.map((u) => (
                 <button key={u.userId} type="button" className="user-search-row" onClick={() => onOpenProfile(u.handle)}>
@@ -143,7 +143,9 @@ export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps)
         ) : !feed ? (
           <p className="lede">Loading...</p>
         ) : feed.length === 0 ? (
-          <div className="archive-empty">No published sessions yet. Publish one from its completion screen.</div>
+          <div className="archive-empty">
+            The feed is waiting on its first published session. Could be yours — publish one from its completion screen.
+          </div>
         ) : (
           <>
             <div className="archive-list">

@@ -34,7 +34,8 @@ export function VerifiedBadge({ size = 'md', compact = false }: VerifiedBadgePro
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.3, delay: 0.2 }}
         >
-          This badge means your session was typed/spoken live, start to finish, no shortcuts.
+          AI can generate words instantly. That makes genuine human thought more valuable, not less — this badge is
+          proof yours was live, start to finish, no shortcuts.
         </motion.span>
       )}
     </span>

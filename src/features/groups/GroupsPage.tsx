@@ -140,7 +140,7 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
         {!groups ? (
           <p className="lede">Loading...</p>
         ) : groups.length === 0 ? (
-          <div className="archive-empty">You're not in any groups yet. Create one or join with a code.</div>
+          <div className="archive-empty">No groups yet. Start one, or bring a code from someone who already did.</div>
         ) : (
           <div className="archive-list">
             {groups.map((g) => (

@@ -42,6 +42,11 @@ const FEATURES = [
     title: 'The Archive',
     body: 'Every session is kept, word for word, going back to the very first one you ever finished. Come back to a category six months later and Bema puts your first attempt right next to your latest — same prompt category, two very different word counts, usually.',
   },
+  {
+    n: '6',
+    title: 'Verified Unaided',
+    body: 'AI can generate words instantly. That makes genuine human thought more valuable, not less. A session earns the Verified Unaided badge by being typed or spoken live, start to finish, inside the lock — proof the words on the page are actually yours.',
+  },
 ]
 
 const FAQ_ITEMS = [

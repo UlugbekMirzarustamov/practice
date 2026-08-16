@@ -67,7 +67,7 @@ export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
         {!entries ? (
           <p className="lede">Loading...</p>
         ) : entries.length === 0 ? (
-          <p className="archive-empty">No members yet.</p>
+          <p className="archive-empty">No members yet. Share the invite code and it stops being just you.</p>
         ) : (
           <div className="leaderboard-list">
             {entries.map((e, i) => (

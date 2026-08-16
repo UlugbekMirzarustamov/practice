@@ -108,7 +108,7 @@ export function PublicProfilePage({ handle, onBack }: PublicProfilePageProps) {
 
             <span className="field-label">Published sessions ({sessions.length})</span>
             {sessions.length === 0 ? (
-              <div className="archive-empty">Nothing published yet.</div>
+              <div className="archive-empty">Nothing published here yet. First one's always the hardest to post.</div>
             ) : (
               <div className="archive-list">
                 {sessions.map((s) => (

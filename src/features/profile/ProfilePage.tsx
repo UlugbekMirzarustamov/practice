@@ -252,7 +252,10 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
 
         {tab === 'posts' &&
           (published.length === 0 ? (
-            <p className="archive-empty">Nothing published yet. Publish a session from its completion screen.</p>
+            <p className="archive-empty">
+              Nothing published yet. Finish a session, then decide on the completion screen whether it's ready to be
+              seen.
+            </p>
           ) : (
             <div className="archive-list">
               {published.map((s) => (
@@ -265,7 +268,9 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
           (!saved ? (
             <p className="lede">Loading...</p>
           ) : saved.length === 0 ? (
-            <p className="archive-empty">Nothing saved yet. Bookmark a session from Discover.</p>
+            <p className="archive-empty">
+              Nothing saved yet. Found something on Discover worth coming back to? That's what the bookmark is for.
+            </p>
           ) : (
             <div className="archive-list">
               {saved.map((s) => (
