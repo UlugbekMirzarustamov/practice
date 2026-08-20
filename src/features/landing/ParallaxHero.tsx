@@ -27,13 +27,13 @@ export function ParallaxHero({ containerRef, backgroundSrc, backgroundAlt, figur
         scrollTrigger: {
           trigger: root,
           start: 'top top',
-          end: 'bottom top',
-          scrub: 0.4,
+          end: '+=650',
+          scrub: 0.2,
         },
       })
-      tl.to(root.querySelectorAll('[data-parallax-layer="back"]'), { yPercent: 16, ease: 'none' }, 0)
-      tl.to(root.querySelectorAll('[data-parallax-layer="title"]'), { yPercent: 32, ease: 'none' }, 0)
-      tl.to(root.querySelectorAll('[data-parallax-layer="figure"]'), { yPercent: 52, ease: 'none' }, 0)
+      tl.to(root.querySelectorAll('[data-parallax-layer="back"]'), { yPercent: 22, ease: 'none' }, 0)
+      tl.to(root.querySelectorAll('[data-parallax-layer="title"]'), { yPercent: 42, ease: 'none' }, 0)
+      tl.to(root.querySelectorAll('[data-parallax-layer="figure"]'), { yPercent: 68, ease: 'none' }, 0)
     }, root)
 
     return () => ctx.revert()
