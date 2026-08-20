@@ -13,9 +13,9 @@ interface ParallaxHeroProps {
 }
 
 /**
- * Renders as siblings of the caller's own hero-figure children (no wrapper div) so the
- * existing .landing-bg-figure / .landing-hero-figure CSS (filters, scrim, fade) keeps
- * applying untouched — this only adds scroll-driven depth on top of it.
+ * Full-bleed scroll-parallax hero: background/title/figure move at different rates as the
+ * page scrolls. Renders as children of the caller's own full-bleed section (no wrapper div)
+ * so the section's own sizing/overflow CSS keeps applying untouched.
  */
 export function ParallaxHero({ containerRef, backgroundSrc, backgroundAlt, figureSrc, figureAlt }: ParallaxHeroProps) {
   useEffect(() => {
@@ -31,9 +31,9 @@ export function ParallaxHero({ containerRef, backgroundSrc, backgroundAlt, figur
           scrub: 0.2,
         },
       })
-      tl.to(root.querySelectorAll('[data-parallax-layer="back"]'), { yPercent: 22, ease: 'none' }, 0)
-      tl.to(root.querySelectorAll('[data-parallax-layer="title"]'), { yPercent: 42, ease: 'none' }, 0)
-      tl.to(root.querySelectorAll('[data-parallax-layer="figure"]'), { yPercent: 68, ease: 'none' }, 0)
+      tl.to(root.querySelectorAll('[data-parallax-layer="back"]'), { yPercent: 10, ease: 'none' }, 0)
+      tl.to(root.querySelectorAll('[data-parallax-layer="title"]'), { yPercent: 24, ease: 'none' }, 0)
+      tl.to(root.querySelectorAll('[data-parallax-layer="figure"]'), { yPercent: 34, ease: 'none' }, 0)
     }, root)
 
     return () => ctx.revert()
@@ -43,21 +43,24 @@ export function ParallaxHero({ containerRef, backgroundSrc, backgroundAlt, figur
     <>
       <img
         data-parallax-layer="back"
-        className="landing-bg-figure parallax-oversize"
+        className="parallax-hero-full-bg"
         src={backgroundSrc}
         alt={backgroundAlt}
         loading="eager"
       />
-      <div data-parallax-layer="title" className="parallax-hero-title-layer" aria-hidden="true">
-        <span className="parallax-hero-title">Bema</span>
-      </div>
       <img
         data-parallax-layer="figure"
-        className="landing-bg-figure parallax-oversize parallax-hero-figure"
+        className="parallax-hero-full-figure"
         src={figureSrc}
         alt={figureAlt}
         loading="eager"
       />
+      <div className="parallax-hero-full-scrim" aria-hidden="true" />
+      <div data-parallax-layer="title" className="parallax-hero-full-title-layer" aria-hidden="true">
+        <span className="parallax-hero-full-title">Bema</span>
+      </div>
+      <h1 className="sr-only">Bema — a locked-timer writing and speaking practice discipline. Never freeze up again.</h1>
+      <div className="parallax-hero-full-fade" aria-hidden="true" />
     </>
   )
 }

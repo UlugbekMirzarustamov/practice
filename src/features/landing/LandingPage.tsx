@@ -69,97 +69,6 @@ const FAQ_ITEMS = [
   },
 ]
 
-function useLivePreviewTick() {
-  const [secondsLeft, setSecondsLeft] = useState(47)
-  const [xp, setXp] = useState(1284)
-  const [lastLineWidth, setLastLineWidth] = useState(84)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setSecondsLeft((s) => (s <= 0 ? 60 : s - 1))
-    }, 1000)
-    const xpTick = setInterval(() => {
-      setXp((x) => x + Math.floor(Math.random() * 3))
-      setLastLineWidth(50 + Math.floor(Math.random() * 38))
-    }, 2600)
-    return () => {
-      clearInterval(timer)
-      clearInterval(xpTick)
-    }
-  }, [])
-
-  const minutes = Math.floor(secondsLeft / 60)
-  const seconds = secondsLeft % 60
-  const formatted = `${minutes}:${seconds.toString().padStart(2, '0')}`
-  return { formatted, xp, lastLineWidth, progress: 1 - secondsLeft / 60 }
-}
-
-function LivePreviewMock() {
-  const { formatted, xp, lastLineWidth, progress } = useLivePreviewTick()
-
-  return (
-    <div className="hero-preview-wrap" aria-hidden="true">
-      <div className="hero-preview-backer" />
-      <div className="hero-preview">
-        <div className="hero-preview-header">
-          <span className="hero-preview-badge">
-            <span className="hero-preview-live-dot" />
-            Writing session
-          </span>
-          <span className="hero-preview-timer tabular">{formatted}</span>
-        </div>
-        <div className="hero-preview-progress">
-          <div className="hero-preview-progress-fill" style={{ width: `${Math.min(100, progress * 100)}%` }} />
-        </div>
-        <p className="hero-preview-topic">Describe your ideal ordinary day</p>
-        <div className="hero-preview-lines">
-          <span className="hero-preview-line" style={{ width: '92%' }} />
-          <span className="hero-preview-line" style={{ width: '76%' }} />
-          <span className="hero-preview-line" style={{ width: `${lastLineWidth}%` }} />
-          <span className="hero-preview-cursor" />
-        </div>
-        <div className="hero-preview-stats">
-          <span>
-            <strong className="tabular">{xp.toLocaleString()}</strong> XP
-          </span>
-          <span>
-            <strong className="tabular">12</strong> day streak
-          </span>
-          <span>
-            <strong className="tabular">Lvl 9</strong>
-          </span>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-function useLiveCount() {
-  const [count, setCount] = useState(9)
-
-  useEffect(() => {
-    const t = setInterval(() => {
-      setCount((c) => Math.max(4, Math.min(19, c + (Math.random() > 0.5 ? 1 : -1))))
-    }, 3400)
-    return () => clearInterval(t)
-  }, [])
-
-  return count
-}
-
-function LiveActivityBadge() {
-  const count = useLiveCount()
-
-  return (
-    <div className="landing-live-badge">
-      <span className="hero-preview-live-dot" />
-      {count} practicing this minute
-    </div>
-  )
-}
-
-const BG_CICERO =
-  'https://upload.wikimedia.org/wikipedia/commons/8/81/Cicero_Denounces_Catiline_in_the_Roman_Senate_by_Cesare_Maccari_-_3.jpg'
 const BG_DEMOSTHENES =
   'https://upload.wikimedia.org/wikipedia/commons/1/1b/Delacroix_-_Demosthenes_Declaiming_by_the_Seashore%2C_1859.jpg'
 const BG_FORUM =
@@ -268,38 +177,15 @@ export function LandingPage({ onEnter, onTryFree }: LandingPageProps) {
         </div>
       </header>
 
-      <div className="landing-band-figure landing-hero-figure" ref={heroRef}>
+      <section className="parallax-hero-full" ref={heroRef}>
         <ParallaxHero
           containerRef={heroRef}
-          backgroundSrc={BG_CICERO}
-          backgroundAlt="Cicero Denounces Catiline in the Roman Senate, fresco by Cesare Maccari, 1889"
-          figureSrc={BG_ARISTOTLE}
-          figureAlt="Aristotle Tutoring Alexander, painting by Jean Leon Gerome Ferris, 1895"
+          backgroundSrc={BG_FORUM}
+          backgroundAlt="Campo Vaccino verso il Campidoglio, etching of the Roman Forum by Giuseppe Vasi, 1752"
+          figureSrc={BG_DEMOSTHENES}
+          figureAlt="Demosthenes Declaiming by the Seashore, painting by Eugène Delacroix, 1859"
         />
-        <div className="landing-bg-scrim" />
-        <div className="landing-band-fade landing-band-fade-hero" />
-        <section className="landing-hero landing-hero-split">
-          <div className="landing-hero-copy">
-            <LiveActivityBadge />
-            <span className="landing-eyebrow">A discipline, not an app</span>
-            <h1 className="landing-hero-title">
-              Never <b>freeze up</b> again.
-            </h1>
-            <p className="landing-hero-sub">
-              A topic appears with no warmup. The clock starts the second you see it, and once you&rsquo;re in, the
-              tab locks &mdash; no switching away, no waiting around for a cleaner sentence to show up. Go quiet too
-              long in Dangerous Mode and the session ends right there, mid-sentence if it has to.
-            </p>
-            <div className="landing-cta-row landing-cta-row-left">
-              <InteractiveButton className="landing-cta-primary" onClick={onTryFree}>
-                Start Practicing
-              </InteractiveButton>
-              <span className="landing-cta-note">Free. No account for your first session.</span>
-            </div>
-          </div>
-          <LivePreviewMock />
-        </section>
-      </div>
+      </section>
 
       <div className="landing-rule" />
 
