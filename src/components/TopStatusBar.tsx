@@ -1,16 +1,27 @@
 import { useEffect, useRef, useState, type RefObject } from 'react'
 import { AnimatePresence } from 'motion/react'
 import type { Stats } from '../lib/gamification'
+import type { Theme } from '../lib/theme'
 import { StatDetailModal, type StatDetailKind } from './StatDetailModal'
+import { ThemeSkyToggle } from './ThemeSkyToggle'
 
 interface TopStatusBarProps {
   stats: Stats
   unreadNotifications: number
   onOpenNotifications: () => void
   scrollContainerRef: RefObject<HTMLElement | null>
+  theme: Theme
+  onToggleTheme: () => void
 }
 
-export function TopStatusBar({ stats, unreadNotifications, onOpenNotifications, scrollContainerRef }: TopStatusBarProps) {
+export function TopStatusBar({
+  stats,
+  unreadNotifications,
+  onOpenNotifications,
+  scrollContainerRef,
+  theme,
+  onToggleTheme,
+}: TopStatusBarProps) {
   const [scrolled, setScrolled] = useState(false)
   const [showProNote, setShowProNote] = useState(false)
   const [activeDetail, setActiveDetail] = useState<StatDetailKind | null>(null)
@@ -60,6 +71,8 @@ export function TopStatusBar({ stats, unreadNotifications, onOpenNotifications, 
         </button>
 
         <div className="top-status-spacer" />
+
+        <ThemeSkyToggle theme={theme} onToggle={onToggleTheme} />
 
         <div className="top-status-pro-wrap">
           <button type="button" className="top-status-pro" onClick={handleProClick}>

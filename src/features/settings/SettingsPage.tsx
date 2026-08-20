@@ -4,7 +4,6 @@ import type { Theme } from '../../lib/theme'
 import type { Profile } from '../../lib/profile'
 import { initials } from '../../lib/profile'
 import { useAuth } from '../../lib/auth'
-import { ThemeSkyToggle } from '../../components/ThemeSkyToggle'
 
 interface SettingsPageProps {
   theme: Theme
@@ -64,7 +63,15 @@ export function SettingsPage({
           <div className="settings-card-title">Appearance</div>
           <div className="settings-toggle-row">
             <span className="field-label">Theme</span>
-            <ThemeSkyToggle theme={theme} onToggle={onToggleTheme} />
+            <button
+              type="button"
+              className="switch"
+              data-on={theme === 'light'}
+              onClick={onToggleTheme}
+              aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            >
+              <span className="switch-thumb" />
+            </button>
           </div>
 
           <div className="settings-toggle-row">

@@ -556,6 +556,8 @@ function AuthenticatedApp() {
             unreadNotifications={unreadNotifications}
             onOpenNotifications={() => setScreen({ name: 'notifications' })}
             scrollContainerRef={mainRef}
+            theme={theme}
+            onToggleTheme={toggleTheme}
           />
         )}
         <AnimatePresence mode="wait">
