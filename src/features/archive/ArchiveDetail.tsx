@@ -9,6 +9,7 @@ import { xpForSession, type Stats } from '../../lib/gamification'
 import { SessionFeedbackSummary } from '../session/SessionFeedbackReport'
 import { ReportCardModal } from '../gamification/ReportCardModal'
 import { Button } from '../../components/Button'
+import { publicSessionUrl } from '../../lib/publicSession'
 
 interface ArchiveDetailProps {
   session: Session
@@ -29,10 +30,21 @@ export function ArchiveDetail({ session, stats, onBack }: ArchiveDetailProps) {
     : (CATEGORIES.find((c) => c.id === session.category)?.label ?? session.category)
   const [comparison, setComparison] = useState<GrowthComparison | null>(null)
   const [showReportCard, setShowReportCard] = useState(false)
+  const [linkCopied, setLinkCopied] = useState(false)
 
   useEffect(() => {
     loadSessions().then((all) => setComparison(computeGrowthComparison(all, session)))
   }, [session])
+
+  const handleCopyLink = async () => {
+    try {
+      await navigator.clipboard.writeText(publicSessionUrl(session.id))
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 1800)
+    } catch {
+      // clipboard access denied, silently ignore
+    }
+  }
 
   return (
     <motion.div
@@ -61,7 +73,14 @@ export function ArchiveDetail({ session, stats, onBack }: ArchiveDetailProps) {
               ))}
             </div>
           )}
-          <Button onClick={() => setShowReportCard(true)}>Share result</Button>
+          <div className="archive-detail-actions">
+            <Button onClick={() => setShowReportCard(true)}>Share result</Button>
+            {session.published && (
+              <button type="button" className="copy-text-btn" onClick={handleCopyLink}>
+                {linkCopied ? 'Link copied' : 'Copy post link'}
+              </button>
+            )}
+          </div>
         </div>
 
         {session.feedback && <SessionFeedbackSummary session={session} />}

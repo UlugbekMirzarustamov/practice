@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ScrollRevealCard } from './ScrollRevealCard'
+import { ParallaxHero } from './ParallaxHero'
 import { usePageMeta } from '../../lib/usePageMeta'
 import { InteractiveButton } from '../../components/InteractiveButton'
 
@@ -268,10 +269,12 @@ export function LandingPage({ onEnter, onTryFree }: LandingPageProps) {
       </header>
 
       <div className="landing-band-figure landing-hero-figure" ref={heroRef}>
-        <img
-          className="landing-bg-figure"
-          src={BG_CICERO}
-          alt="Cicero Denounces Catiline in the Roman Senate, fresco by Cesare Maccari, 1889"
+        <ParallaxHero
+          containerRef={heroRef}
+          backgroundSrc={BG_CICERO}
+          backgroundAlt="Cicero Denounces Catiline in the Roman Senate, fresco by Cesare Maccari, 1889"
+          figureSrc={BG_ARISTOTLE}
+          figureAlt="Aristotle Tutoring Alexander, painting by Jean Leon Gerome Ferris, 1895"
         />
         <div className="landing-bg-scrim" />
         <div className="landing-band-fade landing-band-fade-hero" />

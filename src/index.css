@@ -838,6 +838,50 @@ h3 {
   align-items: center;
 }
 
+.post-comment-submit {
+  border: none;
+  background: none;
+  padding: 0;
+  color: var(--accent-strong);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.post-comment-submit:hover {
+  color: var(--accent);
+}
+
+.post-comment-submit:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.public-session-auth-prompt {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 18px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--bg-elevated);
+}
+
+.public-session-auth-prompt p {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 14px;
+}
+
+.public-session-auth-prompt-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
 /* ---------- Glow effect + scroll progress ---------- */
 
 .glow-cta-wrap {
@@ -1322,6 +1366,47 @@ h3 {
 
 .landing-hero-figure > .landing-bg-figure {
   object-position: center 15%;
+}
+
+.parallax-oversize {
+  top: -12%;
+  height: 124%;
+  will-change: transform;
+}
+
+.parallax-hero-figure {
+  opacity: 0.75;
+  object-position: center 8%;
+}
+
+.parallax-hero-title-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding-right: 5%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.parallax-hero-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: clamp(80px, 15vw, 240px);
+  line-height: 1;
+  color: var(--text);
+  opacity: 0.14;
+  letter-spacing: -3px;
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .parallax-hero-title-layer {
+    justify-content: center;
+    padding-right: 0;
+  }
 }
 
 .landing-band-dark.landing-band-figure > .landing-bg-figure {
@@ -4379,6 +4464,12 @@ h3 {
   display: flex;
   flex-direction: column;
   gap: 10px;
+}
+
+.archive-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
 }
 
 .back-link {

@@ -33,6 +33,8 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
   const [comments, setComments] = useState<SessionComment[] | null>(null)
   const [draftComment, setDraftComment] = useState('')
   const [posting, setPosting] = useState(false)
+  const [authPrompt, setAuthPrompt] = useState<'like' | 'save' | 'comment' | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
 
   usePageMeta({
     title: session ? `${session.topic} — by @${session.authorHandle} on Bema` : 'Shared session — Bema',
@@ -59,20 +61,27 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
 
   useEffect(() => {
     if (showComments && session) loadSessionComments(session.id).then(setComments)
-  }, [showComments, session])
+    // Only re-fetch when comments are opened or the session identity changes — not on every
+    // like/save/comment-count update, which replaces the session object and would otherwise
+    // re-trigger this and race with the optimistic comment append below.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showComments, session?.id])
 
   const handleToggleLike = async () => {
     if (!session) return
     if (!user) {
-      onTryFree()
+      setAuthPrompt('like')
       return
     }
     primeAudio()
     setLikeBusy(true)
+    setActionError(null)
     try {
       const nowLiked = await toggleSessionLike(session.id)
       setSession({ ...session, likedByMe: nowLiked, likeCount: session.likeCount + (nowLiked ? 1 : -1) })
       if (nowLiked) playPositiveChime()
+    } catch {
+      setActionError("Couldn't save that — check your connection and try again.")
     } finally {
       setLikeBusy(false)
     }
@@ -81,15 +90,18 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
   const handleToggleSave = async () => {
     if (!session) return
     if (!user) {
-      onTryFree()
+      setAuthPrompt('save')
       return
     }
     primeAudio()
     setSaveBusy(true)
+    setActionError(null)
     try {
       const nowSaved = await toggleSaveSession(session.id)
       setSession({ ...session, savedByMe: nowSaved })
       if (nowSaved) playPositiveChime()
+    } catch {
+      setActionError("Couldn't save that — check your connection and try again.")
     } finally {
       setSaveBusy(false)
     }
@@ -99,17 +111,20 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
     const text = draftComment.trim()
     if (!text || !session) return
     if (!user) {
-      onTryFree()
+      setAuthPrompt('comment')
       return
     }
     primeAudio()
     setPosting(true)
+    setActionError(null)
     try {
       const comment = await addSessionComment(session.id, text)
       setComments((prev) => [...(prev ?? []), comment])
       setSession({ ...session, commentCount: session.commentCount + 1 })
       setDraftComment('')
       playUiTick()
+    } catch {
+      setActionError("Couldn't post that comment — check your connection and try again.")
     } finally {
       setPosting(false)
     }
@@ -183,6 +198,26 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
             </button>
           </div>
 
+          {actionError && <p className="auth-message auth-error">{actionError}</p>}
+
+          {authPrompt && (
+            <div className="public-session-auth-prompt">
+              <p>
+                {authPrompt === 'like' && 'Sign in to like this session.'}
+                {authPrompt === 'save' && 'Sign in to save this session.'}
+                {authPrompt === 'comment' && 'Sign in to comment on this session.'}
+              </p>
+              <div className="public-session-auth-prompt-actions">
+                <Button variant="primary" onClick={onTryFree}>
+                  Sign in
+                </Button>
+                <button type="button" className="text-link" onClick={() => setAuthPrompt(null)}>
+                  Not now
+                </button>
+              </div>
+            </div>
+          )}
+
           {showComments && (
             <div className="post-comments">
               {!comments ? (
@@ -204,15 +239,17 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
               <div className="post-comment-input">
                 <input
                   className="search-input"
-                  placeholder={user ? 'Add a comment...' : 'Sign in to comment'}
+                  placeholder="Add a comment..."
                   value={draftComment}
                   onChange={(e) => setDraftComment(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && submitComment()}
                   disabled={posting}
                 />
-                <button type="button" className="text-link" onClick={submitComment} disabled={posting}>
-                  Post
-                </button>
+                {draftComment.trim().length > 0 && (
+                  <button type="button" className="post-comment-submit" onClick={submitComment} disabled={posting}>
+                    {posting ? 'Posting...' : 'Post'}
+                  </button>
+                )}
               </div>
             </div>
           )}

@@ -6,7 +6,7 @@ import { loadStats, type Stats } from '../../lib/gamification'
 import { computeAchievements, CATEGORY_LABELS, type AchievementCategory } from '../../lib/achievements'
 import { loadProfile, updateProfile, initials, type Profile } from '../../lib/profile'
 import { loadSavedSessions, type SavedEntry } from '../../lib/discover'
-import { toggleSaveSession } from '../../lib/publicSession'
+import { toggleSaveSession, publicSessionUrl } from '../../lib/publicSession'
 import { primeAudio, playUiTick, playPositiveChime } from '../../lib/sound'
 import { Button } from '../../components/Button'
 import { usePageMeta } from '../../lib/usePageMeta'
@@ -327,7 +327,7 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
   }
 
   const handleShare = async () => {
-    const link = `${window.location.origin}${window.location.pathname}#post-${session.id}`
+    const link = publicSessionUrl(session.id)
     try {
       await navigator.clipboard.writeText(link)
       setCopied(true)
@@ -395,9 +395,11 @@ function PostCard({ session, onUnpublish, onChange }: { session: Session; onUnpu
               onChange={(e) => setDraftComment(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && submitComment()}
             />
-            <button type="button" className="text-link" onClick={submitComment}>
-              Post
-            </button>
+            {draftComment.trim().length > 0 && (
+              <button type="button" className="post-comment-submit" onClick={submitComment}>
+                Post
+              </button>
+            )}
           </div>
         </div>
       )}
