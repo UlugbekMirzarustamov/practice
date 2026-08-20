@@ -60,6 +60,12 @@ interface UserStatsRow {
  * migration) — this just reads the trusted row and derives the level's
  * progress-bar fields, which are a pure function of the already-verified
  * total_xp. There is no client path that can inflate these numbers.
+ *
+ * get_user_stats() (not a plain table select) because streak is only
+ * ever recomputed when a session is written — there's no cron runner, so
+ * a user who stops practicing would otherwise keep seeing their last
+ * streak forever. The RPC freshens it (zeroes it if stale) on every read
+ * before returning the row. See migration 0012.
  */
 export async function loadStats(): Promise<Stats> {
   const {
@@ -68,7 +74,7 @@ export async function loadStats(): Promise<Stats> {
   if (!user) throw new Error('Not signed in')
 
   const [{ data, error }, { data: freezeCount, error: freezeError }] = await Promise.all([
-    supabase.from('user_stats').select('*').eq('user_id', user.id).single(),
+    supabase.rpc('get_user_stats').single(),
     supabase.rpc('get_streak_freeze_status'),
   ])
   if (error) throw error

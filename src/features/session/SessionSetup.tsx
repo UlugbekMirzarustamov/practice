@@ -17,8 +17,6 @@ import { usePageMeta } from '../../lib/usePageMeta'
 import { getTodaysChallenge, hasCompletedDailyChallenge, loadDailyChallengeLeaderboard, type DailyChallengeEntry } from '../../lib/dailyChallenge'
 import { loadRival, type Rival } from '../../lib/rival'
 import { loadRecentActivity, type RecentActivity } from '../../lib/storage'
-import { loadLeaderboard, type LeaderboardEntry } from '../../lib/leaderboard'
-import { useAuth } from '../../lib/auth'
 import { WeekCalendarRow } from '../../components/WeekCalendarRow'
 import { hasAnsweredOnboardingIntent, saveOnboardingIntent, type OnboardingIntent } from '../../lib/onboardingIntent'
 
@@ -33,17 +31,9 @@ interface SessionSetupProps {
   onStart: (category: Category, format: Format, durationMinutes: number, customTopic?: string, difficulty?: Difficulty | null) => void
   onStartIelts: (part: IeltsPart, durationMinutes: number) => void
   onStartChallenge: (mode: Mode, topic: string) => void
-  onOpenLeaderboard: () => void
 }
 
-function nameInitials(name: string): string {
-  const parts = name.trim().split(/\s+/).filter(Boolean)
-  if (parts.length === 0) return '?'
-  if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase()
-  return (parts[0][0] + parts[1][0]).toUpperCase()
-}
-
-export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, onOpenLeaderboard }: SessionSetupProps) {
+export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }: SessionSetupProps) {
   usePageMeta({ title: 'Dashboard — Bema', description: 'Pick your focus and start a locked writing or speaking session.' })
   const [practiceType, setPracticeType] = useState<PracticeType>('general')
   const [category, setCategory] = useState<Category>('general')
@@ -135,8 +125,6 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge, o
           <DailyChallengeCard onStartChallenge={onStartChallenge} />
           <RivalCard />
         </div>
-
-        <LeaderboardCard onOpenLeaderboard={onOpenLeaderboard} />
 
         <h1 className="setup-title">
           <TextEffect speedReveal={1.2} speedSegment={0.6}>
@@ -381,54 +369,6 @@ function TodaysPlanCard({ stats, onStartChallenge }: { stats: Stats; onStartChal
           </div>
         ))}
       </div>
-    </motion.div>
-  )
-}
-
-function LeaderboardCard({ onOpenLeaderboard }: { onOpenLeaderboard: () => void }) {
-  const { user } = useAuth()
-  const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null)
-
-  useEffect(() => {
-    loadLeaderboard()
-      .then((all) => setEntries(all.slice(0, 5)))
-      .catch(() => setEntries([]))
-  }, [])
-
-  if (entries && entries.length === 0) return null
-
-  return (
-    <motion.div className="dashboard-card leaderboard-mini-card" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-      <div className="dashboard-card-top">
-        <span className="dashboard-card-eyebrow">Leaderboard</span>
-        <button type="button" className="text-link" onClick={onOpenLeaderboard}>
-          View all
-        </button>
-      </div>
-      {!entries ? (
-        <span className="option-hint">Loading...</span>
-      ) : (
-        <div className="leaderboard-list">
-          {entries.map((e, i) => (
-            <div key={e.userId} className={['leaderboard-row', 'compact', e.userId === user?.id ? 'you' : ''].filter(Boolean).join(' ')}>
-              <span className="leaderboard-rank tabular">#{i + 1}</span>
-              {e.avatarUrl ? (
-                <img src={e.avatarUrl} alt={`${e.displayName}'s avatar`} className="leaderboard-avatar" />
-              ) : (
-                <span className="leaderboard-avatar-fallback">{nameInitials(e.displayName)}</span>
-              )}
-              <div className="leaderboard-identity">
-                <span className="leaderboard-name">
-                  <span className="leaderboard-name-text">{e.displayName}</span>
-                  {e.userId === user?.id && <span className="you-badge">You</span>}
-                </span>
-                <span className="leaderboard-handle tabular">@{e.handle}</span>
-              </div>
-              <span className="leaderboard-xp tabular">{e.totalXp.toLocaleString()} XP</span>
-            </div>
-          ))}
-        </div>
-      )}
     </motion.div>
   )
 }
