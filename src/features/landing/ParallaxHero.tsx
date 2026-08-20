@@ -48,6 +48,11 @@ export function ParallaxHero({ containerRef, backgroundSrc, backgroundAlt, figur
         alt={backgroundAlt}
         loading="eager"
       />
+      <div className="parallax-hero-full-scrim" aria-hidden="true" />
+      <div data-parallax-layer="title" className="parallax-hero-full-title-layer" aria-hidden="true">
+        <span className="parallax-hero-full-title">Bema</span>
+      </div>
+      <h1 className="sr-only">Bema — a locked-timer writing and speaking practice discipline. Never freeze up again.</h1>
       <img
         data-parallax-layer="figure"
         className="parallax-hero-full-figure"
@@ -55,11 +60,6 @@ export function ParallaxHero({ containerRef, backgroundSrc, backgroundAlt, figur
         alt={figureAlt}
         loading="eager"
       />
-      <div className="parallax-hero-full-scrim" aria-hidden="true" />
-      <div data-parallax-layer="title" className="parallax-hero-full-title-layer" aria-hidden="true">
-        <span className="parallax-hero-full-title">Bema</span>
-      </div>
-      <h1 className="sr-only">Bema — a locked-timer writing and speaking practice discipline. Never freeze up again.</h1>
       <div className="parallax-hero-full-fade" aria-hidden="true" />
     </>
   )

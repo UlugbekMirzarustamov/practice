@@ -75,6 +75,8 @@ const BG_FORUM =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Campo_Vaccino_verso_il_Campidoglio_-_Plate_031_-_Giuseppe_Vasi.jpg'
 const BG_ARISTOTLE =
   'https://upload.wikimedia.org/wikipedia/commons/f/fb/Aristotle_tutoring_Alexander_by_J_L_G_Ferris_1895.jpg'
+const BG_SOPHOCLES =
+  'https://upload.wikimedia.org/wikipedia/commons/9/9b/Sophocles%2C_Roman_Age_marble_statue_after_Greek_original%2C_Klas07.jpg'
 
 function ClockIcon() {
   return (
@@ -182,8 +184,8 @@ export function LandingPage({ onEnter, onTryFree }: LandingPageProps) {
           containerRef={heroRef}
           backgroundSrc={BG_FORUM}
           backgroundAlt="Campo Vaccino verso il Campidoglio, etching of the Roman Forum by Giuseppe Vasi, 1752"
-          figureSrc={BG_DEMOSTHENES}
-          figureAlt="Demosthenes Declaiming by the Seashore, painting by Eugène Delacroix, 1859"
+          figureSrc={BG_SOPHOCLES}
+          figureAlt="Roman-age marble statue of Sophocles, after a Greek original"
         />
       </section>
 

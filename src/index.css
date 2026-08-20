@@ -1519,26 +1519,10 @@ h3 {
   user-select: none;
 }
 
-.parallax-hero-full-figure {
-  position: absolute;
-  inset: -25% 0;
-  z-index: 1;
-  width: 100%;
-  height: 150%;
-  object-fit: cover;
-  object-position: center 22%;
-  filter: sepia(0.35) grayscale(0.1) contrast(1.15) brightness(0.95);
-  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, black 32%);
-  mask-image: linear-gradient(to bottom, transparent 0%, black 32%);
-  will-change: transform;
-  pointer-events: none;
-  user-select: none;
-}
-
 .parallax-hero-full-scrim {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 1;
   background:
     radial-gradient(60% 45% at 50% 42%, rgba(10, 7, 4, 0.45), transparent 70%),
     linear-gradient(to bottom, rgba(10, 7, 4, 0.25) 0%, transparent 30%, transparent 70%, rgba(10, 7, 4, 0.55) 100%);
@@ -1548,7 +1532,7 @@ h3 {
 .parallax-hero-full-title-layer {
   position: absolute;
   inset: 0;
-  z-index: 3;
+  z-index: 2;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1564,6 +1548,32 @@ h3 {
   color: #f7efdd;
   text-shadow: 0 12px 60px rgba(0, 0, 0, 0.55);
   white-space: nowrap;
+}
+
+/*
+ * Not a real cutout (no segmentation tool available) — the source photo is a statue
+ * against a plain studio backdrop, so an elliptical alpha mask fades that flat backdrop
+ * to transparent while leaving the statue's silhouette intact, approximating one. Sized
+ * well under the section's full height on purpose: a small figure against the vast
+ * backdrop is the point, not a full-bleed photo.
+ */
+.parallax-hero-full-figure {
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  bottom: 4%;
+  z-index: 3;
+  width: clamp(200px, 23vw, 380px);
+  height: 64%;
+  object-fit: cover;
+  object-position: center 12%;
+  filter: sepia(0.5) saturate(0.85) contrast(1.12) brightness(0.97);
+  -webkit-mask-image: radial-gradient(ellipse 60% 90% at center 36%, black 48%, transparent 96%);
+  mask-image: radial-gradient(ellipse 60% 90% at center 36%, black 48%, transparent 96%);
+  will-change: transform;
+  pointer-events: none;
+  user-select: none;
 }
 
 .parallax-hero-full-fade {
