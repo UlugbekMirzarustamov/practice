@@ -27,6 +27,7 @@ import { loadSoundEnabled, saveSoundEnabled } from './lib/soundPrefs'
 import { useAuth } from './lib/auth'
 import { AuthPage } from './features/auth/AuthPage'
 import { LandingPage } from './features/landing/LandingPage'
+import { OurStoryPage } from './features/landing/OurStoryPage'
 import { TrialPicker, TrialComplete, TrialFailed } from './features/landing/TrialFlow'
 import { PublicSessionPage } from './features/share/PublicSessionPage'
 import { PrivacyPolicyPage } from './features/share/PrivacyPolicyPage'
@@ -746,6 +747,7 @@ function AuthenticatedApp() {
 
 type PublicView =
   | { name: 'landing' }
+  | { name: 'ourStory' }
   | { name: 'auth' }
   | { name: 'trialPicker' }
   | { name: 'trialActive'; mode: Mode; topic: string }
@@ -789,6 +791,19 @@ function App() {
   if (user) return <AuthenticatedApp />
 
   const goLanding = () => setPublicView({ name: 'landing' })
+
+  if (publicView.name === 'ourStory') {
+    return (
+      <OurStoryPage
+        onHome={goLanding}
+        onTryFree={() => {
+          primeAudio()
+          playUiTick()
+          setPublicView({ name: 'trialPicker' })
+        }}
+      />
+    )
+  }
 
   if (publicView.name === 'auth') return <AuthPage />
 
@@ -859,6 +874,11 @@ function App() {
         primeAudio()
         playUiTick()
         setPublicView({ name: 'trialPicker' })
+      }}
+      onOpenOurStory={() => {
+        primeAudio()
+        playUiTick()
+        setPublicView({ name: 'ourStory' })
       }}
     />
   )

@@ -9,6 +9,7 @@ import heroHistorian from '../../assets/hero-historian.jpg'
 interface LandingPageProps {
   onEnter: () => void
   onTryFree: () => void
+  onOpenOurStory: () => void
 }
 
 const REVEAL = {
@@ -141,7 +142,7 @@ function FaqChatAccordion() {
   )
 }
 
-export function LandingPage({ onEnter, onTryFree }: LandingPageProps) {
+export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageProps) {
   usePageMeta({
     title: 'Bema — Never freeze up again',
     description:
@@ -163,6 +164,9 @@ export function LandingPage({ onEnter, onTryFree }: LandingPageProps) {
       <header className={['landing-nav', scrolled ? 'scrolled' : ''].filter(Boolean).join(' ')}>
         <span className="landing-wordmark">Bema</span>
         <nav className="landing-nav-links">
+          <button type="button" className="landing-nav-link-btn" onClick={onOpenOurStory}>
+            Our Story
+          </button>
           <a href="#about">Who it&rsquo;s for</a>
           <a href="#method">Method</a>
           <a href="#pricing">Pricing</a>
