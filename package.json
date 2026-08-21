@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@sentry/react": "^10.70.0",
     "@supabase/supabase-js": "^2.112.3",
     "gsap": "^3.15.0",
     "motion": "^13.1.0",
