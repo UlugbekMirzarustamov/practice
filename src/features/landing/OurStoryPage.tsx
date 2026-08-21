@@ -48,9 +48,7 @@ export function OurStoryPage({ onHome, onTryFree }: OurStoryPageProps) {
 
       <div className="our-story-content">
         <motion.h1 className="our-story-title" {...FADE_UP(0.1)}>
-          Our
-          <br />
-          Story
+          Bema
         </motion.h1>
 
         <div className="our-story-side">

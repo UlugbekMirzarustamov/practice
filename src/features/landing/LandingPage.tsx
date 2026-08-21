@@ -187,8 +187,6 @@ export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageP
           containerRef={heroRef}
           backgroundSrc={heroHistorian}
           backgroundAlt="A historian writing by hand on the hills above the Acropolis, Athens"
-          figureSrc={heroHistorian}
-          figureAlt=""
         />
       </section>
 

@@ -1527,7 +1527,7 @@ h3 {
   width: 100%;
   height: 130%;
   object-fit: cover;
-  object-position: 40% 15%;
+  object-position: 36% 4%;
   filter: saturate(0.92) contrast(1.05) brightness(0.95);
   will-change: transform;
   pointer-events: none;
@@ -1539,8 +1539,8 @@ h3 {
   inset: 0;
   z-index: 1;
   background:
-    radial-gradient(60% 45% at 50% 42%, rgba(10, 7, 4, 0.45), transparent 70%),
-    linear-gradient(to bottom, rgba(10, 7, 4, 0.25) 0%, transparent 30%, transparent 70%, rgba(10, 7, 4, 0.55) 100%);
+    radial-gradient(50% 55% at 82% 88%, rgba(10, 7, 4, 0.6), transparent 72%),
+    linear-gradient(to bottom, rgba(10, 7, 4, 0.15) 0%, transparent 26%, transparent 60%, rgba(10, 7, 4, 0.6) 100%);
   pointer-events: none;
 }
 
@@ -1549,45 +1549,22 @@ h3 {
   inset: 0;
   z-index: 2;
   display: flex;
-  align-items: center;
-  justify-content: center;
+  align-items: flex-end;
+  justify-content: flex-end;
+  padding: 0 clamp(20px, 5vw, 64px) clamp(80px, 14vh, 150px) 0;
   will-change: transform;
 }
 
 .parallax-hero-full-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(110px, 24vw, 420px);
+  font-size: clamp(64px, 11vw, 168px);
   line-height: 0.85;
   letter-spacing: -0.02em;
   color: #f7efdd;
-  text-shadow: 0 12px 60px rgba(0, 0, 0, 0.55);
+  text-shadow: 0 8px 40px rgba(0, 0, 0, 0.65);
+  text-align: right;
   white-space: nowrap;
-}
-
-/*
- * Not a real cutout (no segmentation tool available) — this is the SAME image as
- * .parallax-hero-full-bg, same box geometry/object-position, so it renders pixel-aligned
- * with the background instance at rest. A mask crops it down to just the historian's
- * head/arms/scroll so that region sits in front of the text while the rest of the photo
- * (already visible via the background layer) stays behind it. Alignment can't drift since
- * it's literally the same pixels — only the mask's edge is an approximation, and any
- * softness there just reads as part of the same photo, not a mismatched cutout.
- */
-.parallax-hero-full-figure {
-  position: absolute;
-  inset: -15% 0;
-  z-index: 3;
-  width: 100%;
-  height: 130%;
-  object-fit: cover;
-  object-position: 40% 15%;
-  filter: saturate(0.98) contrast(1.1) brightness(1.02);
-  -webkit-mask-image: radial-gradient(ellipse 34% 40% at 39% 30%, black 45%, transparent 88%);
-  mask-image: radial-gradient(ellipse 34% 40% at 39% 30%, black 45%, transparent 88%);
-  will-change: transform;
-  pointer-events: none;
-  user-select: none;
 }
 
 .parallax-hero-full-fade {
