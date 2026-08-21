@@ -1506,14 +1506,13 @@ h3 {
 
 .parallax-hero-full-bg {
   position: absolute;
-  inset: -20% 0;
+  inset: -15% 0;
   z-index: 0;
   width: 100%;
-  height: 140%;
+  height: 130%;
   object-fit: cover;
-  object-position: center 35%;
-  filter: sepia(0.55) grayscale(0.15) contrast(1.08) brightness(0.9);
-  opacity: 0.9;
+  object-position: 40% 15%;
+  filter: saturate(0.92) contrast(1.05) brightness(0.95);
   will-change: transform;
   pointer-events: none;
   user-select: none;
@@ -1551,26 +1550,25 @@ h3 {
 }
 
 /*
- * Not a real cutout (no segmentation tool available) — the source photo is a statue
- * against a plain studio backdrop, so an elliptical alpha mask fades that flat backdrop
- * to transparent while leaving the statue's silhouette intact, approximating one. Sized
- * well under the section's full height on purpose: a small figure against the vast
- * backdrop is the point, not a full-bleed photo.
+ * Not a real cutout (no segmentation tool available) — this is the SAME image as
+ * .parallax-hero-full-bg, same box geometry/object-position, so it renders pixel-aligned
+ * with the background instance at rest. A mask crops it down to just the historian's
+ * head/arms/scroll so that region sits in front of the text while the rest of the photo
+ * (already visible via the background layer) stays behind it. Alignment can't drift since
+ * it's literally the same pixels — only the mask's edge is an approximation, and any
+ * softness there just reads as part of the same photo, not a mismatched cutout.
  */
 .parallax-hero-full-figure {
   position: absolute;
-  left: 0;
-  right: 0;
-  margin: 0 auto;
-  bottom: 4%;
+  inset: -15% 0;
   z-index: 3;
-  width: clamp(200px, 23vw, 380px);
-  height: 64%;
+  width: 100%;
+  height: 130%;
   object-fit: cover;
-  object-position: center 12%;
-  filter: sepia(0.5) saturate(0.85) contrast(1.12) brightness(0.97);
-  -webkit-mask-image: radial-gradient(ellipse 60% 90% at center 36%, black 48%, transparent 96%);
-  mask-image: radial-gradient(ellipse 60% 90% at center 36%, black 48%, transparent 96%);
+  object-position: 40% 15%;
+  filter: saturate(0.98) contrast(1.1) brightness(1.02);
+  -webkit-mask-image: radial-gradient(ellipse 34% 40% at 39% 30%, black 45%, transparent 88%);
+  mask-image: radial-gradient(ellipse 34% 40% at 39% 30%, black 45%, transparent 88%);
   will-change: transform;
   pointer-events: none;
   user-select: none;
