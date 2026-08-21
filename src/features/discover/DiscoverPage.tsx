@@ -28,7 +28,7 @@ function nameInitials(name: string): string {
 }
 
 export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps) {
-  usePageMeta({ title: 'Discover — Bema', description: 'Published sessions from the Bema community, most recent first.' })
+  usePageMeta({ title: 'Discover | Bema', description: 'Published sessions from the Bema community, most recent first.' })
   const [feed, setFeed] = useState<DiscoverEntry[] | null>(null)
   const [hasMore, setHasMore] = useState(true)
   const [loadingMore, setLoadingMore] = useState(false)
@@ -144,7 +144,7 @@ export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps)
           <p className="lede">Loading...</p>
         ) : feed.length === 0 ? (
           <div className="archive-empty">
-            The feed is waiting on its first published session. Could be yours — publish one from its completion screen.
+            The feed is waiting on its first published session. Could be yours. Publish one from its completion screen.
           </div>
         ) : (
           <>

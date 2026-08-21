@@ -19,7 +19,7 @@ interface ArchiveListProps {
 type FilterMode = 'all' | Mode
 
 export function ArchiveList({ draft, handle, onResumeDraft, onDiscardDraft, onSelect }: ArchiveListProps) {
-  usePageMeta({ title: 'Your Writings — Bema', description: 'Every session you have finished, kept word for word.' })
+  usePageMeta({ title: 'Your Writings | Bema', description: 'Every session you have finished, kept word for word.' })
   const [sessions, setSessions] = useState<Session[]>([])
   const [filter, setFilter] = useState<FilterMode>('all')
   const [query, setQuery] = useState('')
@@ -147,7 +147,7 @@ export function ArchiveList({ draft, handle, onResumeDraft, onDiscardDraft, onSe
         {filtered.length === 0 ? (
           <div className="archive-empty">
             {sessions.length === 0
-              ? "Empty, for now. This fills up the moment you finish your first locked session — no drafts, no do-overs, just what you actually wrote."
+              ? 'Empty, for now. This fills up the moment you finish your first locked session. No drafts, no do-overs, just what you actually wrote.'
               : 'Nothing matches that search. Try a different word.'}
           </div>
         ) : (

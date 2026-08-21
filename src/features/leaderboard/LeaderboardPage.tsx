@@ -12,7 +12,7 @@ function nameInitials(name: string): string {
 }
 
 export function LeaderboardPage() {
-  usePageMeta({ title: 'Leaderboard — Bema', description: 'A real, server-computed leaderboard. No seeded accounts, no invented rivals.' })
+  usePageMeta({ title: 'Leaderboard | Bema', description: 'A real, server-computed leaderboard. No seeded accounts, no invented rivals.' })
   const { user } = useAuth()
   const [entries, setEntries] = useState<LeaderboardEntry[] | null>(null)
 

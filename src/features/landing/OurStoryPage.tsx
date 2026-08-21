@@ -25,7 +25,7 @@ const FADE_UP = (delay: number) => ({
 
 export function OurStoryPage({ onHome, onTryFree }: OurStoryPageProps) {
   usePageMeta({
-    title: 'Our Story — Bema',
+    title: 'Our Story | Bema',
     description: 'Why Bema exists: a real clock, a locked page, and no room to hide behind a draft.',
   })
 
@@ -53,7 +53,7 @@ export function OurStoryPage({ onHome, onTryFree }: OurStoryPageProps) {
 
         <div className="our-story-side">
           <motion.p className="our-story-lede" {...FADE_UP(0.45)}>
-            Bema exists for the moment right before you speak — when the excuses run out and the words either
+            Bema exists for the moment right before you speak, when the excuses run out and the words either
             come or they don&rsquo;t. No private drafts, no do-overs, no polishing before anyone sees it. Just a
             locked clock, a blank page, and whatever you actually have to say.
           </motion.p>

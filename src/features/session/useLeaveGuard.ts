@@ -64,7 +64,7 @@ export function useLeaveGuard(active: boolean, onTimeout: () => void): UseLeaveG
         blinkOn = !blinkOn
         const secondsInt = Math.ceil(remaining)
         if (remaining <= CRITICAL_SECONDS) {
-          document.title = blinkOn ? `\u{1F534} ${secondsInt}s — COME BACK` : `⚪ ${secondsInt}s — COME BACK`
+          document.title = blinkOn ? `\u{1F534} COME BACK: ${secondsInt}s` : `⚪ COME BACK: ${secondsInt}s`
         } else {
           document.title = `\u{1F7E0} ${secondsInt}s left...`
         }

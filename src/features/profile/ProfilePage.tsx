@@ -27,7 +27,7 @@ interface ProfilePageProps {
 }
 
 export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
-  usePageMeta({ title: 'Your Profile — Bema', description: 'Your stats, achievements, and published sessions.' })
+  usePageMeta({ title: 'Your Profile | Bema', description: 'Your stats, achievements, and published sessions.' })
   const [profile, setProfile] = useState<Profile | null>(null)
   const [stats, setStats] = useState<Stats | null>(null)
   const [sessions, setSessions] = useState<Session[]>([])

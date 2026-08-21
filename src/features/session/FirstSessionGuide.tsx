@@ -9,11 +9,11 @@ interface FirstSessionGuideProps {
 const STEPS = [
   {
     title: 'A topic will appear',
-    body: 'React to it right away — no outline, no do-overs. That’s the whole idea of Off the Cuff.',
+    body: 'React to it right away. No outline, no do-overs. That’s the whole idea of Off the Cuff.',
   },
   {
     title: 'Dangerous Mode ends things fast',
-    body: 'If it’s on, going quiet or stopping mid-sentence ends your session immediately — timer or not.',
+    body: 'If it’s on, going quiet or stopping mid-sentence ends your session immediately, timer or not.',
   },
   {
     title: 'Once you start, you’re locked in',

@@ -96,7 +96,7 @@ function SpeakingFeedbackBody({ feedback }: { feedback: SpeakingFeedback }) {
   return (
     <>
       <div className="reward-row">
-        <StatTile value={feedback.wpm ?? '—'} label="words per minute" />
+        <StatTile value={feedback.wpm ?? 'N/A'} label="words per minute" />
         <StatTile value={feedback.fillerWordTotal} label="filler words" />
       </div>
 
@@ -122,7 +122,7 @@ function SpeakingFeedbackBody({ feedback }: { feedback: SpeakingFeedback }) {
               ))}
             </div>
             <p className="option-hint">
-              A simple word match, not a judgment call &mdash; &ldquo;like&rdquo; counts every time it shows up, filler or not.
+              A simple word match, not a judgment call. &ldquo;Like&rdquo; counts every time it shows up, filler or not.
             </p>
           </>
         ) : (
@@ -138,7 +138,7 @@ function WritingFeedbackBody({ feedback }: { feedback: WritingFeedback }) {
     <>
       <div className="reward-row">
         <StatTile value={feedback.wordCount} label="words written" />
-        <StatTile value={feedback.avgSentenceLength || '—'} label="avg words / sentence" />
+        <StatTile value={feedback.avgSentenceLength || 'N/A'} label="avg words / sentence" />
       </div>
 
       {feedback.longestSentence && (

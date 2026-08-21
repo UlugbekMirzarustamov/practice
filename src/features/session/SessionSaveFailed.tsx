@@ -49,15 +49,15 @@ export function SessionSaveFailed({ content, draftBackedUp, onRetry, onDiscard }
         </motion.span>
 
         <motion.h1 className="result-title" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.4 }}>
-          Your writing is safe. The save isn&rsquo;t &mdash; yet.
+          Your writing is safe. The save isn&rsquo;t. Not yet.
         </motion.h1>
 
         <p className="lede">
           The session finished, but saving it to your account failed
           {draftBackedUp
-            ? " — most likely a dropped connection. It's held below, and we've also backed it up as a draft."
-            : ". It's held below exactly as you left it — nothing has been discarded."}{' '}
-          Copy it out if you want a second copy of your own, then try saving again.
+            ? ", most likely from a dropped connection. It's held below, and we've also backed it up as a draft."
+            : ". It's held below exactly as you left it. Nothing has been discarded."}{' '}
+          Copy the text below if you want a backup of your own, then try saving again.
         </p>
 
         <div className="save-failed-content">{content || <em>No content captured.</em>}</div>
@@ -73,7 +73,7 @@ export function SessionSaveFailed({ content, draftBackedUp, onRetry, onDiscard }
 
         {retryFailed && (
           <p className="option-hint save-failed-warning">
-            Still couldn&rsquo;t save. Check your connection and try again — your writing isn&rsquo;t going anywhere.
+            Still couldn&rsquo;t save. Check your connection and try again. Your writing isn&rsquo;t going anywhere.
           </p>
         )}
 

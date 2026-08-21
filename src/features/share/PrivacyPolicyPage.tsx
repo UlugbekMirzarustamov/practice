@@ -6,7 +6,7 @@ interface PrivacyPolicyPageProps {
 
 export function PrivacyPolicyPage({ onHome }: PrivacyPolicyPageProps) {
   usePageMeta({
-    title: 'Privacy Policy — Bema',
+    title: 'Privacy Policy | Bema',
     description: 'What Bema collects, why, and how row-level security keeps your sessions private.',
   })
 

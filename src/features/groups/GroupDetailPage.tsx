@@ -16,7 +16,7 @@ function nameInitials(name: string): string {
 }
 
 export function GroupDetailPage({ group, onBack }: GroupDetailPageProps) {
-  usePageMeta({ title: `${group.name} — Bema`, description: `Leaderboard for ${group.name} on Bema.` })
+  usePageMeta({ title: `${group.name} | Bema`, description: `Leaderboard for ${group.name} on Bema.` })
   const [entries, setEntries] = useState<GroupLeaderboardEntry[] | null>(null)
   const [copied, setCopied] = useState<'code' | 'link' | null>(null)
 

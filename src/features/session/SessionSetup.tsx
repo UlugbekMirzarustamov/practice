@@ -34,7 +34,7 @@ interface SessionSetupProps {
 }
 
 export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }: SessionSetupProps) {
-  usePageMeta({ title: 'Dashboard — Bema', description: 'Pick your focus and start a locked writing or speaking session.' })
+  usePageMeta({ title: 'Dashboard | Bema', description: 'Pick your focus and start a locked writing or speaking session.' })
   const [practiceType, setPracticeType] = useState<PracticeType>('general')
   const [category, setCategory] = useState<Category>('general')
   const [format, setFormat] = useState<Format>('cuff')

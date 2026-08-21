@@ -37,7 +37,7 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
   const [actionError, setActionError] = useState<string | null>(null)
 
   usePageMeta({
-    title: session ? `${session.topic} — by @${session.authorHandle} on Bema` : 'Shared session — Bema',
+    title: session ? `${session.topic} (by @${session.authorHandle} on Bema)` : 'Shared session | Bema',
     description: session
       ? `A ${session.durationMinutes}-minute ${session.mode} session by @${session.authorHandle}: "${session.topic}"`
       : 'A published Bema session.',
@@ -81,7 +81,7 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       setSession({ ...session, likedByMe: nowLiked, likeCount: session.likeCount + (nowLiked ? 1 : -1) })
       if (nowLiked) playPositiveChime()
     } catch {
-      setActionError("Couldn't save that — check your connection and try again.")
+      setActionError("Couldn't save that. Check your connection and try again.")
     } finally {
       setLikeBusy(false)
     }
@@ -101,7 +101,7 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       setSession({ ...session, savedByMe: nowSaved })
       if (nowSaved) playPositiveChime()
     } catch {
-      setActionError("Couldn't save that — check your connection and try again.")
+      setActionError("Couldn't save that. Check your connection and try again.")
     } finally {
       setSaveBusy(false)
     }
@@ -124,7 +124,7 @@ export function PublicSessionPage({ sessionId, onTryFree }: PublicSessionPagePro
       setDraftComment('')
       playUiTick()
     } catch {
-      setActionError("Couldn't post that comment — check your connection and try again.")
+      setActionError("Couldn't post that comment. Check your connection and try again.")
     } finally {
       setPosting(false)
     }

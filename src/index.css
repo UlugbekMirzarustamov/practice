@@ -1520,14 +1520,22 @@ h3 {
   background: #100c08;
 }
 
+/*
+ * object-fit: contain, not cover — on wide-but-short viewports (most laptops/desktops), the
+ * hero box is a wider aspect ratio than the source photo, and cover crops the top/bottom to
+ * fill the width, which was cutting the man off around the thigh. Contain guarantees the
+ * whole photo — the whole figure — is always visible, at the cost of letterboxing left/right
+ * on very wide screens. The section's own dark background shows through that letterbox
+ * space, which reads as intentional (a framed image), not broken.
+ */
 .parallax-hero-full-bg {
   position: absolute;
-  inset: -15% 0;
+  inset: 0;
   z-index: 0;
   width: 100%;
-  height: 130%;
-  object-fit: cover;
-  object-position: 36% 4%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center 12%;
   filter: saturate(0.92) contrast(1.05) brightness(0.95);
   will-change: transform;
   pointer-events: none;
@@ -1558,7 +1566,7 @@ h3 {
 .parallax-hero-full-title {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(64px, 11vw, 168px);
+  font-size: clamp(90px, 15vw, 240px);
   line-height: 0.85;
   letter-spacing: -0.02em;
   color: #f7efdd;

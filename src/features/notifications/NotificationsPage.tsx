@@ -22,7 +22,7 @@ function verbFor(n: AppNotification): string {
 }
 
 export function NotificationsPage({ onOpenProfile, onRead }: NotificationsPageProps) {
-  usePageMeta({ title: 'Notifications — Bema', description: 'Follows, likes, and comments on your sessions.' })
+  usePageMeta({ title: 'Notifications | Bema', description: 'Follows, likes, and comments on your sessions.' })
   const [items, setItems] = useState<AppNotification[] | null>(null)
 
   useEffect(() => {

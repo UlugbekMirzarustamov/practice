@@ -209,7 +209,7 @@ export function TopicReveal({
               <span className="field-label">Respond by</span>
               <p className="option-hint" style={{ margin: 0 }}>
                 {forcedMode !== effectiveForcedMode
-                  ? "Today's challenge is a speaking prompt, but your browser doesn't support live speech recognition — you'll write it instead."
+                  ? "Today's challenge is a speaking prompt, but your browser doesn't support live speech recognition, so you'll write it instead."
                   : `Today's challenge is ${effectiveForcedMode === 'writing' ? 'a writing' : 'a speaking'} prompt for everyone.`}
               </p>
             </div>

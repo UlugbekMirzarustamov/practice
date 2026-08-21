@@ -11,7 +11,7 @@ interface GroupsPageProps {
 }
 
 export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps) {
-  usePageMeta({ title: 'Groups — Bema', description: 'Practice groups you belong to, each with its own leaderboard.' })
+  usePageMeta({ title: 'Groups | Bema', description: 'Practice groups you belong to, each with its own leaderboard.' })
   const [groups, setGroups] = useState<Group[] | null>(null)
   const [showCreate, setShowCreate] = useState(false)
   const [name, setName] = useState('')

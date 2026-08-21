@@ -248,7 +248,7 @@ export function SessionLock({
             <span className="leave-siren-light" />
             <span className="leave-siren-text tabular">
               Come back in {Math.ceil(leaveSecondsRemaining)}s or this session gets saved
-              {onLeaveTimeout ? ' — you will need to sign up to keep writing' : ' as a draft'}
+              {onLeaveTimeout ? ', and you will need to sign up to keep writing' : ' as a draft'}
             </span>
           </motion.div>
         )}

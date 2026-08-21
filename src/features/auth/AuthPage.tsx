@@ -8,9 +8,9 @@ import { usePageMeta } from '../../lib/usePageMeta'
 type Mode = 'sign-in' | 'sign-up' | 'forgot'
 
 const MODE_TITLES: Record<Mode, string> = {
-  'sign-in': 'Sign in — Bema',
-  'sign-up': 'Create your account — Bema',
-  forgot: 'Reset your password — Bema',
+  'sign-in': 'Sign in | Bema',
+  'sign-up': 'Create your account | Bema',
+  forgot: 'Reset your password | Bema',
 }
 
 export function AuthPage() {

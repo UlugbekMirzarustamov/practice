@@ -27,7 +27,7 @@ function nameInitials(name: string): string {
 }
 
 export function PublicProfilePage({ handle, onBack }: PublicProfilePageProps) {
-  usePageMeta({ title: `@${handle} — Bema`, description: `${handle}'s public profile on Bema.` })
+  usePageMeta({ title: `@${handle} | Bema`, description: `${handle}'s public profile on Bema.` })
   const { user } = useAuth()
   const [profile, setProfile] = useState<PublicProfile | null | undefined>(undefined)
   const [sessions, setSessions] = useState<DiscoverEntry[]>([])

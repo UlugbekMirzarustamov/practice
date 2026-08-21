@@ -193,7 +193,7 @@ export function SessionComplete({ session, prevStats, nextStats, wasFirstEver, o
           </div>
           {publishSaving && <p className="option-hint">Saving...</p>}
           {publishError && (
-            <p className="auth-message auth-error">Couldn't save that — check your connection and try again.</p>
+            <p className="auth-message auth-error">Couldn't save that. Check your connection and try again.</p>
           )}
           {published === true && !publishSaving && (
             <div className="publish-link-row">

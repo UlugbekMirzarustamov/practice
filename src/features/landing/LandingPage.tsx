@@ -38,17 +38,17 @@ const FEATURES = [
   {
     n: '4',
     title: 'Streaks & XP',
-    body: 'Every finished session earns XP and extends your streak, both computed server-side from sessions you actually completed. Even you can’t inflate that number — there’s simply no path to do it from your side of the screen.',
+    body: 'Every finished session earns XP and extends your streak, both computed server-side from sessions you actually completed. Even you can’t inflate that number. There’s simply no path to do it from your side of the screen.',
   },
   {
     n: '5',
     title: 'The Archive',
-    body: 'Every session is kept, word for word, going back to the very first one you ever finished. Come back to a category six months later and Bema puts your first attempt right next to your latest — same prompt category, two very different word counts, usually.',
+    body: 'Every session is kept, word for word, going back to the very first one you ever finished. Come back to a category six months later and Bema puts your first attempt right next to your latest: same prompt category, two very different word counts, usually.',
   },
   {
     n: '6',
     title: 'Verified Unaided',
-    body: 'AI can generate words instantly. That makes genuine human thought more valuable, not less. A session earns the Verified Unaided badge by being typed or spoken live, start to finish, inside the lock — proof the words on the page are actually yours.',
+    body: 'AI can generate words instantly. That makes genuine human thought more valuable, not less. A session earns the Verified Unaided badge by being typed or spoken live, start to finish, inside the lock. That is proof the words on the page are actually yours.',
   },
 ]
 
@@ -144,7 +144,7 @@ function FaqChatAccordion() {
 
 export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageProps) {
   usePageMeta({
-    title: 'Bema — Never freeze up again',
+    title: 'Bema: Never freeze up again',
     description:
       'A locked-timer writing and speaking practice discipline. Off the Cuff, Deep Research, and Dangerous Mode, with a real leaderboard and archive. Free, no card needed.',
   })
@@ -210,15 +210,15 @@ export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageP
           </h2>
           <p>
             The page doesn&rsquo;t care how you feel about it, and neither should you. Writers who wait for the
-            right mood rarely start at all. Speakers who over-rehearse run into the opposite problem &mdash; the
+            right mood rarely start at all. Speakers who over-rehearse run into the opposite problem: the
             rehearsal becomes the whole performance, and the real one never happens. So the session locks the
-            moment you start &mdash; no leaving, no switching tabs, no quietly opening a new one to escape a hard
+            moment you start. No leaving, no switching tabs, no quietly opening a new one to escape a hard
             sentence. The clock keeps running whether the words come easily or not, and whatever&rsquo;s on the
             page when time runs out is what you get.
           </p>
           <p>
             Most practice tools let you drill in private, at your own pace, with an undo button always in reach.
-            That builds comfort with practicing &mdash; not with the moment that actually counts, like the
+            That builds comfort with practicing, not with the moment that actually counts, like the
             best-man toast you agreed to give six months ago and have been avoiding writing ever since. This is
             built for IELTS candidates and speakers who freeze under pressure, but also just anyone who&rsquo;s
             noticed their writing habit quietly died sometime last year. A locked three-minute clock will feel

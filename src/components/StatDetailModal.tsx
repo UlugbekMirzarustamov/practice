@@ -145,7 +145,7 @@ function StarDetail({ stats }: { stats: Stats }) {
       </div>
       <span className="stat-detail-eyebrow">Personal Best</span>
       <span className="stat-detail-number tabular">{stats.bestStreak}</span>
-      <span className="stat-detail-sub">day{stats.bestStreak === 1 ? '' : 's'} — your longest streak ever</span>
+      <span className="stat-detail-sub">day{stats.bestStreak === 1 ? '' : 's'}, your longest streak ever</span>
       {atPersonalBest && <span className="stat-detail-hint stat-detail-hint-growth">You're at your personal best right now.</span>}
     </>
   )

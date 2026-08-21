@@ -8,7 +8,7 @@ const BG_FORUM =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Campo_Vaccino_verso_il_Campidoglio_-_Plate_031_-_Giuseppe_Vasi.jpg'
 
 export function NotFoundPage({ onHome }: NotFoundPageProps) {
-  usePageMeta({ title: 'Page not found — Bema', description: 'This page does not exist.' })
+  usePageMeta({ title: 'Page not found | Bema', description: 'This page does not exist.' })
 
   return (
     <div className="landing-page">
