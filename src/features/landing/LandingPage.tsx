@@ -243,9 +243,8 @@ export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageP
             Most practice tools let you drill in private, at your own pace, with an undo button always in reach.
             That builds comfort with practicing, not with the moment that actually counts, like the
             best-man toast you agreed to give six months ago and have been avoiding writing ever since. This is
-            built for IELTS candidates and speakers who freeze under pressure, but also just anyone who&rsquo;s
-            noticed their writing habit quietly died sometime last year. A locked three-minute clock will feel
-            uncomfortable at first.
+            built for speakers who freeze under pressure, but also just anyone who&rsquo;s noticed their writing
+            habit quietly died sometime last year. A locked three-minute clock will feel uncomfortable at first.
           </p>
           <div className="landing-callout">
             <p>

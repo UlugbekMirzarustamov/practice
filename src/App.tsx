@@ -6,7 +6,6 @@ import type { Category, Difficulty } from './data/prompts'
 import type { Format } from './types/flow'
 import type { IeltsPart } from './data/ielts'
 import { getRandomPrompt } from './data/prompts'
-import { getRandomIeltsTopicGroup, formatIeltsTopicGroup, getRandomIeltsPart2, formatIeltsPart2 } from './data/ielts'
 import { createSession } from './lib/storage'
 import { loadDraft, saveDraft, clearDraft, type Draft } from './lib/drafts'
 import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/uiPrefs'
@@ -299,24 +298,6 @@ function AuthenticatedApp() {
     })
   }
 
-  const handlePickIelts = async (part: IeltsPart, durationMinutes: number) => {
-    await clearDraft()
-    setDraft(null)
-    const sequential = part === 'part1' || part === 'part3'
-    const group = sequential ? getRandomIeltsTopicGroup(part) : null
-    const topic = sequential ? formatIeltsTopicGroup(group!) : formatIeltsPart2(getRandomIeltsPart2())
-    setScreen({
-      name: 'revealing',
-      category: 'general',
-      format: 'cuff',
-      ielts: part,
-      ieltsQuestions: group?.questions,
-      ieltsTopicLabel: group?.topic,
-      durationMinutes,
-      topic,
-    })
-  }
-
   const handleSessionStart = (mode: Mode, topic: string, opts: StartOptions) => {
     if (screen.name !== 'revealing') return
     playSessionStartChime()
@@ -567,7 +548,6 @@ function AuthenticatedApp() {
               key="setup"
               stats={stats}
               onStart={handlePickTopic}
-              onStartIelts={handlePickIelts}
               onStartChallenge={handleStartChallenge}
             />
           )}

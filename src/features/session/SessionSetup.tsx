@@ -5,8 +5,6 @@ import { DIFFICULTIES } from '../../data/prompts'
 import type { Format } from '../../types/flow'
 import type { Mode } from '../../types/session'
 import type { Stats } from '../../lib/gamification'
-import type { IeltsPart } from '../../data/ielts'
-import { IELTS_PARTS } from '../../data/ielts'
 import { Button } from '../../components/Button'
 import { OptionToggle } from '../../components/OptionToggle'
 import { TextEffect } from '../../components/TextEffect'
@@ -20,8 +18,6 @@ import { loadRecentActivity, type RecentActivity } from '../../lib/storage'
 import { WeekCalendarRow } from '../../components/WeekCalendarRow'
 import { hasAnsweredOnboardingIntent, saveOnboardingIntent, type OnboardingIntent } from '../../lib/onboardingIntent'
 
-type PracticeType = 'general' | 'ielts'
-
 type TopicSource = 'random' | 'custom'
 
 const CURIOUS_CATEGORIES: Category[] = ['arts', 'science', 'astronomy', 'history']
@@ -29,16 +25,13 @@ const CURIOUS_CATEGORIES: Category[] = ['arts', 'science', 'astronomy', 'history
 interface SessionSetupProps {
   stats: Stats
   onStart: (category: Category, format: Format, durationMinutes: number, customTopic?: string, difficulty?: Difficulty | null) => void
-  onStartIelts: (part: IeltsPart, durationMinutes: number) => void
   onStartChallenge: (mode: Mode, topic: string) => void
 }
 
-export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }: SessionSetupProps) {
+export function SessionSetup({ stats, onStart, onStartChallenge }: SessionSetupProps) {
   usePageMeta({ title: 'Dashboard | Bema', description: 'Pick your focus and start a locked writing or speaking session.' })
-  const [practiceType, setPracticeType] = useState<PracticeType>('general')
   const [category, setCategory] = useState<Category>('general')
   const [format, setFormat] = useState<Format>('cuff')
-  const [ieltsPart, setIeltsPart] = useState<IeltsPart>('part1')
   const [duration, setDuration] = useState(5)
   const [topicSource, setTopicSource] = useState<TopicSource>('random')
   const [customTopic, setCustomTopic] = useState('')
@@ -46,7 +39,7 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
   const [showIntentPrompt, setShowIntentPrompt] = useState(() => stats.sessionCount === 0 && !hasAnsweredOnboardingIntent())
 
   const trimmedCustomTopic = customTopic.trim()
-  const canStart = practiceType === 'ielts' || topicSource === 'random' || trimmedCustomTopic.length > 0
+  const canStart = topicSource === 'random' || trimmedCustomTopic.length > 0
 
   const handlePickIntent = (intent: OnboardingIntent) => {
     saveOnboardingIntent(intent)
@@ -69,11 +62,7 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
   const handleStart = () => {
     if (!canStart) return
     primeAudio()
-    if (practiceType === 'ielts') {
-      onStartIelts(ieltsPart, duration)
-    } else {
-      onStart(category, format, duration, topicSource === 'custom' ? trimmedCustomTopic : undefined, difficulty)
-    }
+    onStart(category, format, duration, topicSource === 'custom' ? trimmedCustomTopic : undefined, difficulty)
   }
 
   return (
@@ -145,114 +134,73 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
         <p className="lede">Once you start, the session locks. Leave early, or go quiet too long, and it's gone.</p>
 
         <div className="field">
-          <span className="field-label">Practice type</span>
-          <div className="option-row">
+          <span className="field-label">Topic</span>
+          <div className="option-row" style={{ marginBottom: 10 }}>
             <OptionToggle
-              groupId="practice-type"
-              label="General"
-              tagline="Any topic, your call"
-              selected={practiceType === 'general'}
-              onClick={() => setPracticeType('general')}
+              groupId="topic-source"
+              label="Random"
+              tagline="Bema picks for you"
+              selected={topicSource === 'random'}
+              onClick={() => setTopicSource('random')}
             />
             <OptionToggle
-              groupId="practice-type"
-              label="IELTS Speaking"
-              tagline="Real exam-style questions"
-              selected={practiceType === 'ielts'}
-              onClick={() => setPracticeType('ielts')}
+              groupId="topic-source"
+              label="Your own"
+              tagline="Type a prompt"
+              selected={topicSource === 'custom'}
+              onClick={() => setTopicSource('custom')}
             />
           </div>
+          {topicSource === 'random' ? (
+            <CategoryDropdown value={category} onChange={setCategory} />
+          ) : (
+            <input
+              className="search-input"
+              placeholder="Type your own topic or prompt..."
+              value={customTopic}
+              onChange={(e) => setCustomTopic(e.target.value)}
+              maxLength={200}
+            />
+          )}
         </div>
 
-        {practiceType === 'general' ? (
-          <>
-            <div className="field">
-              <span className="field-label">Topic</span>
-              <div className="option-row" style={{ marginBottom: 10 }}>
-                <OptionToggle
-                  groupId="topic-source"
-                  label="Random"
-                  tagline="Bema picks for you"
-                  selected={topicSource === 'random'}
-                  onClick={() => setTopicSource('random')}
-                />
-                <OptionToggle
-                  groupId="topic-source"
-                  label="Your own"
-                  tagline="Type a prompt"
-                  selected={topicSource === 'custom'}
-                  onClick={() => setTopicSource('custom')}
-                />
-              </div>
-              {topicSource === 'random' ? (
-                <CategoryDropdown value={category} onChange={setCategory} />
-              ) : (
-                <input
-                  className="search-input"
-                  placeholder="Type your own topic or prompt..."
-                  value={customTopic}
-                  onChange={(e) => setCustomTopic(e.target.value)}
-                  maxLength={200}
-                />
-              )}
-            </div>
-
-            {topicSource === 'random' && (
-              <div className="field">
-                <span className="field-label">Difficulty</span>
-                <div className="option-row">
-                  <OptionToggle groupId="difficulty" label="Any" selected={difficulty === null} onClick={() => setDifficulty(null)} />
-                  {DIFFICULTIES.map((d) => (
-                    <OptionToggle
-                      key={d.id}
-                      groupId="difficulty"
-                      label={d.label}
-                      selected={difficulty === d.id}
-                      onClick={() => setDifficulty(d.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="field">
-              <span className="field-label">Format</span>
-              <div className="option-row">
-                <OptionToggle
-                  groupId="format"
-                  label="Off the Cuff"
-                  tagline="No prep, speak or write now"
-                  selected={format === 'cuff'}
-                  onClick={() => setFormat('cuff')}
-                />
-                <OptionToggle
-                  groupId="format"
-                  label="Deep Research"
-                  tagline="Think first, then respond"
-                  selected={format === 'deep'}
-                  onClick={() => setFormat('deep')}
-                />
-              </div>
-            </div>
-          </>
-        ) : (
+        {topicSource === 'random' && (
           <div className="field">
-            <span className="field-label">IELTS part</span>
-            <p className="option-hint">Speaking only, matching the real test format for each part.</p>
+            <span className="field-label">Difficulty</span>
             <div className="option-row">
-              {IELTS_PARTS.map((p) => (
+              <OptionToggle groupId="difficulty" label="Any" selected={difficulty === null} onClick={() => setDifficulty(null)} />
+              {DIFFICULTIES.map((d) => (
                 <OptionToggle
-                  key={p.id}
-                  groupId="ielts-part"
-                  label={p.label}
-                  tagline={p.tagline}
-                  selected={ieltsPart === p.id}
-                  onClick={() => setIeltsPart(p.id)}
+                  key={d.id}
+                  groupId="difficulty"
+                  label={d.label}
+                  selected={difficulty === d.id}
+                  onClick={() => setDifficulty(d.id)}
                 />
               ))}
             </div>
           </div>
         )}
+
+        <div className="field">
+          <span className="field-label">Format</span>
+          <div className="option-row">
+            <OptionToggle
+              groupId="format"
+              label="Off the Cuff"
+              tagline="No prep, speak or write now"
+              selected={format === 'cuff'}
+              onClick={() => setFormat('cuff')}
+            />
+            <OptionToggle
+              groupId="format"
+              label="Deep Research"
+              tagline="Think first, then respond"
+              selected={format === 'deep'}
+              onClick={() => setFormat('deep')}
+            />
+          </div>
+        </div>
 
         <div className="field">
           <span className="field-label">Duration</span>
@@ -273,7 +221,7 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
         <div className="glow-cta-wrap">
           <GlowEffect />
           <Button variant="primary" block onClick={handleStart} disabled={!canStart}>
-            {practiceType === 'general' && topicSource === 'custom' ? 'Use this topic' : 'Find my topic'}
+            {topicSource === 'custom' ? 'Use this topic' : 'Find my topic'}
           </Button>
         </div>
       </div>
