@@ -116,15 +116,26 @@ export function SessionSetup({ stats, onStart, onStartIelts, onStartChallenge }:
           </motion.div>
         )}
 
-        <div className="dashboard-cards-row">
-          <TodaysPlanCard stats={stats} onStartChallenge={onStartChallenge} />
-          <WeekStreakCard stats={stats} />
-        </div>
+        {stats.sessionCount > 0 ? (
+          <>
+            <div className="dashboard-cards-row">
+              <TodaysPlanCard stats={stats} onStartChallenge={onStartChallenge} />
+              <WeekStreakCard stats={stats} />
+            </div>
 
-        <div className="dashboard-cards-row">
-          <DailyChallengeCard onStartChallenge={onStartChallenge} />
-          <RivalCard />
-        </div>
+            <div className="dashboard-cards-row">
+              <DailyChallengeCard onStartChallenge={onStartChallenge} />
+              <RivalCard />
+            </div>
+          </>
+        ) : (
+          !showIntentPrompt && (
+            <p className="option-hint dashboard-first-visit-note">
+              Your dashboard fills in once you finish your first session: streaks, today&rsquo;s plan, a daily
+              challenge, a rival to chase. For now, just pick something below and go.
+            </p>
+          )
+        )}
 
         <h1 className="setup-title">
           <TextEffect speedReveal={1.2} speedSegment={0.6}>

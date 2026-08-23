@@ -795,7 +795,10 @@ function App() {
   if (publicView.name === 'ourStory') {
     return (
       <OurStoryPage
-        onHome={goLanding}
+        onNavigate={(hash) => {
+          window.history.replaceState({}, '', hash ? `/#${hash}` : '/')
+          goLanding()
+        }}
         onTryFree={() => {
           primeAudio()
           playUiTick()

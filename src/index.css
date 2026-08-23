@@ -83,8 +83,18 @@ body {
   height: 100%;
 }
 
+/*
+ * overflow-x lives here, not on body: setting only one axis on body (without the other)
+ * makes the CSS spec implicitly promote body's overflow-y to auto too, which creates a second,
+ * ambiguous scroll container alongside html. document.scrollingElement still reports "HTML" in
+ * that state, but scrollIntoView()'s own nearest-scrollable-ancestor lookup gets confused by it
+ * and silently no-ops — plain window.scrollTo() still works, which is what made this so easy to
+ * miss. Setting it on html instead avoids the ambiguity outright: body is left with the
+ * default (visible) overflow on both axes, so there's only ever one real scroll container.
+ */
 html {
   scroll-behavior: smooth;
+  overflow-x: hidden;
 }
 
 body {
@@ -93,7 +103,6 @@ body {
   color: var(--text);
   min-height: 100dvh;
   position: relative;
-  overflow-x: hidden;
 }
 
 /* Ambient glow field: the "alive" backdrop behind every screen */
@@ -4596,6 +4605,10 @@ h3 {
   font-size: 19px;
 }
 
+.dashboard-first-visit-note {
+  margin: 0 0 20px;
+}
+
 /* ---------- Dashboard header bar ---------- */
 
 .dashboard-header-bar {
@@ -5245,6 +5258,12 @@ h3 {
   font-size: 18px;
   font-weight: 600;
   color: rgba(247, 239, 221, 0.85);
+  -webkit-text-stroke: 1px rgba(0, 0, 0, 0.8);
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 .our-story-home:hover {
@@ -5266,14 +5285,18 @@ h3 {
   backdrop-filter: blur(6px);
 }
 
-.our-story-nav a {
+.our-story-nav button {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  font-family: inherit;
   font-size: 13px;
   color: rgba(225, 224, 204, 0.75);
-  text-decoration: none;
   white-space: nowrap;
 }
 
-.our-story-nav a:hover {
+.our-story-nav button:hover {
   color: #e1e0cc;
 }
 
@@ -5297,7 +5320,13 @@ h3 {
   line-height: 0.86;
   letter-spacing: -0.02em;
   color: #f7efdd;
-  text-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+  -webkit-text-stroke: 2px rgba(0, 0, 0, 0.85);
+  text-shadow:
+    -3px -3px 0 #000,
+    3px -3px 0 #000,
+    -3px 3px 0 #000,
+    3px 3px 0 #000,
+    0 10px 50px rgba(0, 0, 0, 0.6);
 }
 
 .our-story-side {
@@ -5311,9 +5340,16 @@ h3 {
 
 .our-story-lede {
   margin: 0;
-  color: rgba(247, 239, 221, 0.82);
+  color: rgba(247, 239, 221, 0.95);
   font-size: 15px;
+  font-weight: 600;
   line-height: 1.55;
+  -webkit-text-stroke: 0.6px rgba(0, 0, 0, 0.75);
+  text-shadow:
+    -1px -1px 0 #000,
+    1px -1px 0 #000,
+    -1px 1px 0 #000,
+    1px 1px 0 #000;
 }
 
 .our-story-cta {
@@ -5334,7 +5370,7 @@ h3 {
     padding: 10px 16px;
   }
 
-  .our-story-nav a {
+  .our-story-nav button {
     font-size: 11px;
   }
 

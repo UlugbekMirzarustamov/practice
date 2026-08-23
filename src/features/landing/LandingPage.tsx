@@ -159,6 +159,29 @@ export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageP
     return () => observer.disconnect()
   }, [])
 
+  // Picks up a hash set before this page mounted (e.g. navigating back from Our Story to a
+  // specific section) — a same-document `href="/#about"` link does nothing on its own here
+  // since the SPA never changes pathname, so nothing ever triggers the browser's native scroll.
+  // Deliberately window.scrollTo() with a manually computed offset, not el.scrollIntoView():
+  // the target sections are inside a `.landing-band-figure` (overflow: hidden, for the
+  // background image) that also gets a `transform` from its own whileInView reveal animation
+  // until it has actually scrolled into view once naturally — that transform makes it a new
+  // containing block, and scrollIntoView's nearest-scrollable-ancestor walk silently gives up
+  // on it. window.scrollTo isn't relative to the DOM tree, so it isn't affected.
+  useEffect(() => {
+    const hash = window.location.hash
+    if (!hash) return
+    const timer = setTimeout(() => {
+      const el = document.querySelector(hash)
+      if (!el) return
+      const top = el.getBoundingClientRect().top + window.scrollY
+      // 'instant', not 'auto': 'auto' defers to the global scroll-behavior: smooth and, on this
+      // page, silently never actually moves — 'instant' bypasses that and reliably jumps.
+      window.scrollTo({ top, behavior: 'instant' })
+    }, 120)
+    return () => clearTimeout(timer)
+  }, [])
+
   return (
     <div className="landing-page">
       <header className={['landing-nav', scrolled ? 'scrolled' : ''].filter(Boolean).join(' ')}>
@@ -295,7 +318,7 @@ export function LandingPage({ onEnter, onTryFree, onOpenOurStory }: LandingPageP
           </h2>
           <div className="landing-price-card">
             <span className="landing-price">Free</span>
-            <p>Free. We haven&rsquo;t figured out how to charge you yet.</p>
+            <p>We haven&rsquo;t figured out how to charge you yet.</p>
             <button type="button" className="landing-cta-primary" onClick={onEnter}>
               Start Practicing &rarr;
             </button>

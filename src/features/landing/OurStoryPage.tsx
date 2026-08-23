@@ -3,7 +3,7 @@ import { InteractiveButton } from '../../components/InteractiveButton'
 import { usePageMeta } from '../../lib/usePageMeta'
 
 interface OurStoryPageProps {
-  onHome: () => void
+  onNavigate: (hash?: string) => void
   onTryFree: () => void
 }
 
@@ -11,10 +11,10 @@ const BG_STORY =
   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Campo_Vaccino_verso_il_Campidoglio_-_Plate_031_-_Giuseppe_Vasi.jpg'
 
 const NAV_ITEMS = [
-  { label: "Who it's for", href: '/#about' },
-  { label: 'Method', href: '/#method' },
-  { label: 'Pricing', href: '/#pricing' },
-  { label: 'FAQ', href: '/#faq' },
+  { label: "Who it's for", hash: 'about' },
+  { label: 'Method', hash: 'method' },
+  { label: 'Pricing', hash: 'pricing' },
+  { label: 'FAQ', hash: 'faq' },
 ]
 
 const FADE_UP = (delay: number) => ({
@@ -23,7 +23,7 @@ const FADE_UP = (delay: number) => ({
   transition: { duration: 0.7, delay, ease: [0.16, 1, 0.3, 1] as const },
 })
 
-export function OurStoryPage({ onHome, onTryFree }: OurStoryPageProps) {
+export function OurStoryPage({ onNavigate, onTryFree }: OurStoryPageProps) {
   usePageMeta({
     title: 'Our Story | Bema',
     description: 'Why Bema exists: a real clock, a locked page, and no room to hide behind a draft.',
@@ -34,15 +34,15 @@ export function OurStoryPage({ onHome, onTryFree }: OurStoryPageProps) {
       <img className="our-story-bg" src={BG_STORY} alt="Campo Vaccino verso il Campidoglio, etching of the Roman Forum by Giuseppe Vasi, 1752" />
       <div className="our-story-scrim" aria-hidden="true" />
 
-      <button type="button" className="our-story-home" onClick={onHome}>
+      <button type="button" className="our-story-home" onClick={() => onNavigate()}>
         Bema
       </button>
 
       <nav className="our-story-nav">
         {NAV_ITEMS.map((item) => (
-          <a key={item.label} href={item.href}>
+          <button key={item.label} type="button" onClick={() => onNavigate(item.hash)}>
             {item.label}
-          </a>
+          </button>
         ))}
       </nav>
 
