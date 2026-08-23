@@ -12,6 +12,7 @@ import { loadSidebarCollapsedDefault, saveSidebarCollapsedDefault } from './lib/
 import { loadStats, checkAndUnlockMilestones, type Stats } from './lib/gamification'
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
 import { loadProfile, markGuideSeen, type Profile } from './lib/profile'
+import { OnboardingGate } from './features/onboarding/OnboardingGate'
 import {
   primeAudio,
   playSessionStartChime,
@@ -517,6 +518,10 @@ function AuthenticatedApp() {
   const showSidebar = !FOCUS_SCREENS.includes(screen.name)
 
   if (bootLoading || !profile || !stats) return <LoadingScreen />
+
+  if (!profile.onboarded) {
+    return <OnboardingGate onComplete={setProfile} />
+  }
 
   return (
     <div className="app-shell">

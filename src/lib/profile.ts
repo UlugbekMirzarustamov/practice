@@ -9,6 +9,7 @@ export interface Profile {
   memberSince: string
   isAdmin: boolean
   hasSeenGuide: boolean
+  onboarded: boolean
 }
 
 interface ProfileRow {
@@ -20,6 +21,7 @@ interface ProfileRow {
   is_admin: boolean
   member_since: string
   has_seen_guide: boolean
+  onboarded: boolean
 }
 
 function rowToProfile(row: ProfileRow): Profile {
@@ -32,6 +34,7 @@ function rowToProfile(row: ProfileRow): Profile {
     memberSince: row.member_since,
     isAdmin: row.is_admin,
     hasSeenGuide: row.has_seen_guide,
+    onboarded: row.onboarded,
   }
 }
 
@@ -51,7 +54,7 @@ export interface ProfileUpdateError {
 }
 
 export async function updateProfile(
-  patch: Partial<Pick<Profile, 'displayName' | 'bio' | 'avatarDataUrl' | 'handle'>>,
+  patch: Partial<Pick<Profile, 'displayName' | 'bio' | 'avatarDataUrl' | 'handle' | 'onboarded'>>,
 ): Promise<{ profile: Profile | null; error: ProfileUpdateError | null }> {
   const {
     data: { user },
@@ -63,6 +66,7 @@ export async function updateProfile(
   if (patch.bio !== undefined) dbPatch.bio = patch.bio
   if (patch.avatarDataUrl !== undefined) dbPatch.avatar_url = patch.avatarDataUrl
   if (patch.handle !== undefined) dbPatch.handle = patch.handle
+  if (patch.onboarded !== undefined) dbPatch.onboarded = patch.onboarded
 
   const { data, error } = await supabase.from('profiles').update(dbPatch).eq('id', user.id).select().single()
   if (error) {
