@@ -1,5 +1,6 @@
 export type Category =
   | 'general'
+  | 'reflective'
   | 'sport'
   | 'tech'
   | 'entrepreneurship'
@@ -20,6 +21,7 @@ export interface CategoryInfo {
 
 export const CATEGORIES: CategoryInfo[] = [
   { id: 'general', label: 'General', tagline: 'Anything goes' },
+  { id: 'reflective', label: 'Reflective', tagline: 'Questions turned inward' },
   { id: 'sport', label: 'Sport', tagline: 'Competition and the body' },
   { id: 'tech', label: 'AI & Tech', tagline: 'Machines and what they change' },
   { id: 'entrepreneurship', label: 'Entrepreneurship', tagline: 'Building from nothing' },
@@ -97,6 +99,30 @@ const PROMPTS_BY_CATEGORY: Record<Category, PromptEntry[]> = {
     { text: 'What you would say to someone just starting out in your field', difficulty: 'medium' },
     { text: 'A small act of kindness you remember receiving', difficulty: 'easy' },
     { text: 'Something you are still figuring out about yourself', difficulty: 'medium' },
+  ],
+  reflective: [
+    { text: 'A version of yourself you have quietly let go of', difficulty: 'medium' },
+    { text: 'Something you forgave someone for, and whether you meant it', difficulty: 'medium' },
+    { text: 'A belief you inherited without ever choosing it', difficulty: 'medium' },
+    { text: 'The last time you were honestly wrong about someone', difficulty: 'easy' },
+    { text: 'What you are avoiding thinking about right now', difficulty: 'hard' },
+    { text: 'A compliment you never said out loud', difficulty: 'easy' },
+    { text: 'Something you do to be liked rather than to be yourself', difficulty: 'hard' },
+    { text: 'The story you tell about yourself that might not be true', difficulty: 'hard' },
+    { text: 'A moment you were proud of that no one else noticed', difficulty: 'easy' },
+    { text: 'What silence usually means when you go quiet', difficulty: 'medium' },
+    { text: 'Something you have not forgiven yourself for', difficulty: 'hard' },
+    { text: 'A fear that got smaller by living with it, not by beating it', difficulty: 'hard' },
+    { text: 'What you actually want, versus what you say you want', difficulty: 'hard' },
+    { text: 'A relationship that changed shape without ending', difficulty: 'medium' },
+    { text: 'The last time you surprised yourself', difficulty: 'easy' },
+    { text: 'What you would do differently if no one were watching', difficulty: 'medium' },
+    { text: 'A grudge you are still carrying, and what it is costing you', difficulty: 'hard' },
+    { text: 'Something you know about yourself that you rarely admit', difficulty: 'hard' },
+    { text: 'A time you chose comfort over honesty', difficulty: 'medium' },
+    { text: 'What "enough" would actually feel like for you', difficulty: 'medium' },
+    { text: 'A rule you follow that you never actually agreed with', difficulty: 'medium' },
+    { text: 'The person you compare yourself to most, and why', difficulty: 'medium' },
   ],
   sport: [
     { text: 'Offside rule in soccer', difficulty: 'easy' },
