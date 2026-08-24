@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import type { Profile } from '../lib/profile'
 import type { Theme } from '../lib/theme'
 import { ProfileMenu } from './ProfileMenu'
+import { SparkleGlyph, CloudGlyph } from './ThemeSkyToggle'
 
 export type SidebarDest = 'dashboard' | 'archive' | 'discover' | 'notifications' | 'leaderboard' | 'groups' | 'profile' | 'settings' | 'admin'
 
@@ -26,6 +27,30 @@ const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
+const SIDEBAR_STARS = [
+  { top: '4%', left: '20%', size: 7, opacity: 0.75 },
+  { top: '9%', left: '72%', size: 5, opacity: 0.55 },
+  { top: '16%', left: '45%', size: 9, opacity: 0.8 },
+  { top: '24%', left: '85%', size: 5, opacity: 0.5 },
+  { top: '31%', left: '12%', size: 6, opacity: 0.6 },
+  { top: '39%', left: '60%', size: 5, opacity: 0.55 },
+  { top: '47%', left: '30%', size: 8, opacity: 0.7 },
+  { top: '55%', left: '78%', size: 6, opacity: 0.6 },
+  { top: '63%', left: '18%', size: 5, opacity: 0.5 },
+  { top: '71%', left: '52%', size: 7, opacity: 0.65 },
+  { top: '80%', left: '88%', size: 5, opacity: 0.5 },
+  { top: '88%', left: '35%', size: 6, opacity: 0.55 },
+]
+
+const SIDEBAR_CLOUDS = [
+  { top: '6%', left: '-10%', width: 130, opacity: 0.9 },
+  { top: '22%', left: '55%', width: 90, opacity: 0.65 },
+  { top: '40%', left: '-8%', width: 105, opacity: 0.75 },
+  { top: '58%', left: '48%', width: 80, opacity: 0.55 },
+  { top: '76%', left: '5%', width: 115, opacity: 0.7 },
+  { top: '92%', left: '50%', width: 85, opacity: 0.5 },
+]
+
 export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollapse, theme, onToggleTheme }: SidebarProps) {
   return (
     <motion.aside
@@ -34,6 +59,23 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
       animate={{ width: collapsed ? 64 : 188 }}
       transition={{ type: 'spring', stiffness: 340, damping: 32 }}
     >
+      <div className="sidebar-sky" aria-hidden="true">
+        <div className="sidebar-sky-layer sidebar-sky-night">
+          {SIDEBAR_STARS.map((s, i) => (
+            <SparkleGlyph
+              key={i}
+              className="sidebar-star"
+              style={{ top: s.top, left: s.left, width: s.size, height: s.size, opacity: s.opacity }}
+            />
+          ))}
+        </div>
+        <div className="sidebar-sky-layer sidebar-sky-day">
+          {SIDEBAR_CLOUDS.map((c, i) => (
+            <CloudGlyph key={i} className="sidebar-cloud" style={{ top: c.top, left: c.left, width: c.width, opacity: c.opacity }} />
+          ))}
+        </div>
+      </div>
+
       <div className="sidebar-top">
         <span className="sidebar-logo">B</span>
         {!collapsed && <span className="sidebar-wordmark">Bema</span>}

@@ -43,7 +43,7 @@ export function ThemeSkyToggle({ theme, onToggle }: ThemeSkyToggleProps) {
   )
 }
 
-function SparkleGlyph({ className, style }: { className?: string; style?: React.CSSProperties }) {
+export function SparkleGlyph({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
     <svg className={className} style={style} width="7" height="7" viewBox="0 0 8 8" fill="none">
       <path d="M4 0L4.8 3.2L8 4L4.8 4.8L4 8L3.2 4.8L0 4L3.2 3.2L4 0Z" fill="currentColor" />
@@ -51,9 +51,9 @@ function SparkleGlyph({ className, style }: { className?: string; style?: React.
   )
 }
 
-function CloudGlyph({ className }: { className?: string }) {
+export function CloudGlyph({ className, style }: { className?: string; style?: React.CSSProperties }) {
   return (
-    <svg className={className} viewBox="0 0 20 12" fill="none">
+    <svg className={className} style={style} viewBox="0 0 20 12" fill="none">
       <path
         d="M4.5 10.5a3.5 3.5 0 010-7 4 4 0 017.6-1.4A3.2 3.2 0 0116.5 5a3 3 0 01-1 5.5h-11z"
         fill="currentColor"

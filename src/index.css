@@ -199,47 +199,53 @@ h3 {
 }
 
 /*
- * The sidebar itself carries the same day/night sky the ThemeSkyToggle shows in miniature —
- * a night layer (stars) and a day layer (sun glow) stacked full-bleed behind the nav, cross-
- * fading on theme toggle. Two layers instead of one animated gradient because gradients don't
- * interpolate reliably across browsers on transition; opacity crossfade always does.
+ * The sidebar carries the same day/night sky the ThemeSkyToggle shows in miniature — real
+ * star and cloud glyphs (not just a gradient wash) scattered down the full height, stacked
+ * behind the nav in two layers that cross-fade on theme toggle. Opacity crossfade, not an
+ * animated gradient, since gradients don't interpolate reliably across browsers on transition.
  */
-.sidebar::before,
-.sidebar::after {
-  content: '';
+.sidebar-sky {
   position: absolute;
   inset: 0;
   z-index: -1;
-  transition: opacity 0.6s ease;
+  overflow: hidden;
   pointer-events: none;
 }
 
-.sidebar::before {
-  background:
-    radial-gradient(1.5px 1.5px at 22% 12%, rgba(255, 255, 255, 0.55), transparent),
-    radial-gradient(1px 1px at 68% 7%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 40% 24%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1.5px 1.5px at 85% 30%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 15% 42%, rgba(255, 255, 255, 0.3), transparent),
-    radial-gradient(1px 1px at 55% 55%, rgba(255, 255, 255, 0.35), transparent),
-    radial-gradient(1.5px 1.5px at 90% 68%, rgba(255, 255, 255, 0.4), transparent),
-    radial-gradient(1px 1px at 30% 82%, rgba(255, 255, 255, 0.3), transparent),
-    radial-gradient(1px 1px at 72% 92%, rgba(255, 255, 255, 0.32), transparent),
-    linear-gradient(180deg, #1c1720 0%, #100c08 100%);
+.sidebar-sky-layer {
+  position: absolute;
+  inset: 0;
+  transition: opacity 0.6s ease;
+}
+
+.sidebar-sky-night {
+  background: linear-gradient(180deg, #1c1720 0%, #100c08 100%);
   opacity: 1;
 }
 
-.sidebar::after {
+.sidebar-sky-day {
   background: radial-gradient(320px 220px at 50% -8%, rgba(255, 214, 140, 0.35), transparent 70%), linear-gradient(180deg, #fff8ec 0%, #fbe9c2 100%);
   opacity: 0;
 }
 
-:root[data-theme='light'] .sidebar::before {
+:root[data-theme='light'] .sidebar-sky-night {
   opacity: 0;
 }
 
-:root[data-theme='light'] .sidebar::after {
+:root[data-theme='light'] .sidebar-sky-day {
   opacity: 1;
+}
+
+.sidebar-star {
+  position: absolute;
+  color: #fff;
+  filter: drop-shadow(0 0 3px rgba(255, 255, 255, 0.7));
+}
+
+.sidebar-cloud {
+  position: absolute;
+  color: #fff;
+  filter: drop-shadow(0 2px 6px rgba(180, 140, 60, 0.2));
 }
 
 .sidebar-top {
