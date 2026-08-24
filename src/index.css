@@ -461,19 +461,12 @@ h3 {
   white-space: nowrap;
 }
 
-.sidebar-account-row .switch {
-  width: 34px;
-  height: 19px;
-  flex-shrink: 0;
+.sidebar-theme-row {
+  cursor: default;
 }
 
-.sidebar-account-row .switch-thumb {
-  width: 13px;
-  height: 13px;
-}
-
-.sidebar-account-row .switch[data-on='true'] .switch-thumb {
-  transform: translateX(15px);
+.sidebar-theme-row:hover {
+  background: none;
 }
 
 .sidebar-account-confirm {

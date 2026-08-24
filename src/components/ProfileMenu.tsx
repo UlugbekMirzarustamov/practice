@@ -3,6 +3,7 @@ import type { Profile } from '../lib/profile'
 import { initials } from '../lib/profile'
 import type { Theme } from '../lib/theme'
 import { useAuth } from '../lib/auth'
+import { ThemeSkyToggle } from './ThemeSkyToggle'
 
 interface ProfileMenuProps {
   profile: Profile
@@ -38,22 +39,21 @@ export function ProfileMenu({ profile, collapsed, onNavigate, theme, onToggleThe
         )}
       </button>
 
-      <button
-        type="button"
-        className="sidebar-account-row"
-        onClick={onToggleTheme}
-        title={collapsed ? (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode') : undefined}
-      >
-        <span className="sidebar-icon-wrap">{theme === 'dark' ? <MoonIcon /> : <SunIcon />}</span>
-        {!collapsed && (
-          <>
-            <span className="sidebar-account-label">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
-            <span className="switch" data-on={theme === 'light'} aria-hidden="true">
-              <span className="switch-thumb" />
-            </span>
-          </>
-        )}
-      </button>
+      {collapsed ? (
+        <button
+          type="button"
+          className="sidebar-account-row"
+          onClick={onToggleTheme}
+          title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+        >
+          <span className="sidebar-icon-wrap">{theme === 'dark' ? <MoonIcon /> : <SunIcon />}</span>
+        </button>
+      ) : (
+        <div className="sidebar-account-row sidebar-theme-row">
+          <span className="sidebar-account-label">{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>
+          <ThemeSkyToggle theme={theme} onToggle={onToggleTheme} />
+        </div>
+      )}
 
       {!confirmingLogOut ? (
         <button
