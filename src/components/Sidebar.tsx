@@ -1,6 +1,7 @@
 import type { ReactElement } from 'react'
 import { motion } from 'motion/react'
 import type { Profile } from '../lib/profile'
+import type { Theme } from '../lib/theme'
 import { ProfileMenu } from './ProfileMenu'
 
 export type SidebarDest = 'dashboard' | 'archive' | 'discover' | 'notifications' | 'leaderboard' | 'groups' | 'profile' | 'settings' | 'admin'
@@ -11,6 +12,8 @@ interface SidebarProps {
   profile: Profile
   collapsed: boolean
   onToggleCollapse: () => void
+  theme: Theme
+  onToggleTheme: () => void
 }
 
 const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }) => ReactElement }[] = [
@@ -23,7 +26,7 @@ const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }
   { id: 'settings', label: 'Settings', icon: SettingsIcon },
 ]
 
-export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollapse }: SidebarProps) {
+export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollapse, theme, onToggleTheme }: SidebarProps) {
   return (
     <motion.aside
       className={['sidebar', collapsed ? 'collapsed' : ''].filter(Boolean).join(' ')}
@@ -34,6 +37,11 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
       <div className="sidebar-top">
         <span className="sidebar-logo">B</span>
         {!collapsed && <span className="sidebar-wordmark">Bema</span>}
+        {!collapsed && (
+          <button type="button" className="sidebar-collapse" onClick={onToggleCollapse} title="Collapse">
+            <ChevronIcon collapsed={collapsed} />
+          </button>
+        )}
       </div>
 
       <nav className="sidebar-nav">
@@ -69,10 +77,12 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
       </nav>
 
       <div className="sidebar-bottom">
-        <ProfileMenu profile={profile} collapsed={collapsed} onNavigate={onNavigate} />
-        <button type="button" className="sidebar-collapse" onClick={onToggleCollapse} title={collapsed ? 'Expand' : 'Collapse'}>
-          <ChevronIcon collapsed={collapsed} />
-        </button>
+        <ProfileMenu profile={profile} collapsed={collapsed} onNavigate={onNavigate} theme={theme} onToggleTheme={onToggleTheme} />
+        {collapsed && (
+          <button type="button" className="sidebar-collapse" onClick={onToggleCollapse} title="Expand">
+            <ChevronIcon collapsed={collapsed} />
+          </button>
+        )}
       </div>
     </motion.aside>
   )

@@ -13,6 +13,7 @@ import { loadStats, checkAndUnlockMilestones, type Stats } from './lib/gamificat
 import { type Theme, loadTheme, saveTheme, applyTheme } from './lib/theme'
 import { loadProfile, markGuideSeen, type Profile } from './lib/profile'
 import { OnboardingGate } from './features/onboarding/OnboardingGate'
+import { capturePendingReferral } from './lib/referrals'
 import {
   primeAudio,
   playSessionStartChime,
@@ -532,6 +533,8 @@ function AuthenticatedApp() {
           profile={profile}
           collapsed={sidebarCollapsed}
           onToggleCollapse={toggleSidebarCollapsed}
+          theme={theme}
+          onToggleTheme={toggleTheme}
         />
       )}
 
@@ -742,6 +745,10 @@ type PublicView =
 function App() {
   const { user, loading } = useAuth()
   const [publicView, setPublicView] = useState<PublicView>({ name: 'landing' })
+
+  useEffect(() => {
+    capturePendingReferral()
+  }, [])
 
   const pathname = window.location.pathname
   const goHomePath = () => {

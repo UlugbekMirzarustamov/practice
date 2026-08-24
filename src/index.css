@@ -204,6 +204,10 @@ h3 {
   padding: 0 4px;
 }
 
+.sidebar-top .sidebar-collapse {
+  margin-left: auto;
+}
+
 .sidebar-logo {
   width: 32px;
   height: 32px;
@@ -220,9 +224,10 @@ h3 {
 }
 
 .sidebar-wordmark {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 700;
+  color: var(--text);
   white-space: nowrap;
 }
 
@@ -337,7 +342,15 @@ h3 {
   align-items: center;
   gap: 6px;
   border-top: 1px solid var(--border-soft);
-  padding-top: 12px;
+  padding-top: 10px;
+}
+
+.sidebar-account {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
 
 .sidebar-profile {
@@ -376,11 +389,85 @@ h3 {
   font-weight: 700;
 }
 
+.sidebar-profile-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  gap: 1px;
+}
+
+.sidebar-profile-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .sidebar-handle {
   font-size: 12px;
   color: var(--text-muted);
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-account-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 6px;
+  border: none;
+  background: transparent;
+  border-radius: 10px;
+  color: var(--text-muted);
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+}
+
+.sidebar-account-row:hover {
+  background: var(--bg-elevated-2);
+  color: var(--text);
+}
+
+.sidebar-account-row.destructive:hover {
+  color: var(--danger);
+}
+
+.sidebar-account-label {
+  flex: 1;
+  min-width: 0;
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-account-row .switch {
+  width: 34px;
+  height: 19px;
+  flex-shrink: 0;
+}
+
+.sidebar-account-row .switch-thumb {
+  width: 13px;
+  height: 13px;
+}
+
+.sidebar-account-row .switch[data-on='true'] .switch-thumb {
+  transform: translateX(15px);
+}
+
+.sidebar-account-confirm {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
   white-space: nowrap;
 }
 

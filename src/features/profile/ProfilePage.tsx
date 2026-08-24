@@ -139,9 +139,11 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
               ) : (
                 <div className="profile-avatar profile-avatar-fallback">{initials(profile)}</div>
               )}
-              <button type="button" className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()}>
-                Change
-              </button>
+              {editing && (
+                <button type="button" className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()}>
+                  Change
+                </button>
+              )}
               <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleAvatarPick} />
             </div>
 

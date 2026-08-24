@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react'
 import { motion } from 'motion/react'
 import { updateProfile, type Profile } from '../../lib/profile'
+import { applyPendingReferral } from '../../lib/referrals'
 import { InteractiveButton } from '../../components/InteractiveButton'
 import { usePageMeta } from '../../lib/usePageMeta'
 
@@ -50,6 +51,7 @@ export function OnboardingGate({ onComplete }: OnboardingGateProps) {
       setError(updateError?.message ?? 'Something went wrong. Try again.')
       return
     }
+    await applyPendingReferral().catch(() => {})
     onComplete(updated)
   }
 
