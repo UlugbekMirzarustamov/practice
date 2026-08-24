@@ -5,7 +5,7 @@ import { loadSessions, updateSession, loadComments, addComment } from '../../lib
 import { loadStats, type Stats } from '../../lib/gamification'
 import { computeAchievements, CATEGORY_LABELS, type AchievementCategory } from '../../lib/achievements'
 import { loadProfile, updateProfile, initials, type Profile } from '../../lib/profile'
-import { loadSavedSessions, type SavedEntry } from '../../lib/discover'
+import { loadSavedSessions, loadPublicProfile, type SavedEntry } from '../../lib/discover'
 import { toggleSaveSession, publicSessionUrl } from '../../lib/publicSession'
 import { primeAudio, playUiTick, playPositiveChime } from '../../lib/sound'
 import { Button } from '../../components/Button'
@@ -39,6 +39,7 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
   const [draftBio, setDraftBio] = useState('')
   const [saveError, setSaveError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+  const [followCounts, setFollowCounts] = useState<{ followerCount: number; followingCount: number } | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const refresh = () => {
@@ -47,6 +48,9 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
       setDraftName(p.displayName)
       setDraftHandle(p.handle)
       setDraftBio(p.bio)
+      loadPublicProfile(p.handle)
+        .then((pub) => setFollowCounts(pub ? { followerCount: pub.followerCount, followingCount: pub.followingCount } : null))
+        .catch(() => setFollowCounts(null))
     })
     loadStats().then(setStats)
     loadSessions().then(setSessions)
@@ -121,34 +125,62 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
   return (
     <motion.div className="page" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.35 }}>
       <div className="page-inner" style={{ maxWidth: 900 }}>
-        <div className="profile-header">
-          <div className="profile-avatar-wrap">
-            {profile.avatarDataUrl ? (
-              <img src={profile.avatarDataUrl} alt={`${profile.displayName}'s avatar`} className="profile-avatar" />
-            ) : (
-              <div className="profile-avatar profile-avatar-fallback">{initials(profile)}</div>
-            )}
-            <button type="button" className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()}>
-              Change
-            </button>
-            <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleAvatarPick} />
-          </div>
-
-          <div className="profile-identity">
-            <h1 className="setup-title">{profile.displayName}</h1>
-            <span className="profile-handle tabular">@{profile.handle}</span>
-            <span className="lede tabular">
-              Member since {new Date(profile.memberSince).toLocaleDateString()} · Level {stats.level.level} ·{' '}
-              {stats.totalXp} XP
-            </span>
-            {profile.bio && <p className="lede">{profile.bio}</p>}
-
-            {!editing && (
-              <button type="button" className="text-link" style={{ alignSelf: 'flex-start' }} onClick={() => setEditing(true)}>
-                Edit profile
+        <div className="profile-hero">
+          <div className="profile-banner" aria-hidden="true" />
+          {!editing && (
+            <Button className="profile-edit-btn-banner" onClick={() => setEditing(true)}>
+              Edit profile
+            </Button>
+          )}
+          <div className="profile-header profile-header-hero">
+            <div className="profile-avatar-wrap">
+              {profile.avatarDataUrl ? (
+                <img src={profile.avatarDataUrl} alt={`${profile.displayName}'s avatar`} className="profile-avatar" />
+              ) : (
+                <div className="profile-avatar profile-avatar-fallback">{initials(profile)}</div>
+              )}
+              <button type="button" className="profile-avatar-edit" onClick={() => fileInputRef.current?.click()}>
+                Change
               </button>
-            )}
+              <input ref={fileInputRef} type="file" accept="image/*" hidden onChange={handleAvatarPick} />
+            </div>
+
+            <div className="profile-identity">
+              <h1 className="setup-title" style={{ marginBottom: 0 }}>
+                {profile.displayName}
+              </h1>
+              <span className="profile-handle tabular">@{profile.handle}</span>
+              <div className="profile-counts-row">
+                <span>
+                  <strong className="tabular">{followCounts?.followerCount ?? 0}</strong> followers
+                </span>
+                <span>·</span>
+                <span>
+                  <strong className="tabular">{followCounts?.followingCount ?? 0}</strong> following
+                </span>
+                <span>·</span>
+                <span>
+                  <strong className="tabular">{published.length}</strong> posts
+                </span>
+              </div>
+              {profile.bio && <p className="lede" style={{ margin: 0 }}>{profile.bio}</p>}
+            </div>
           </div>
+        </div>
+
+        <div className="profile-meta-pills">
+          <span className="profile-meta-pill">
+            Member since <strong>{new Date(profile.memberSince).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</strong>
+          </span>
+          <span className="profile-meta-pill">
+            Level <strong className="tabular">{stats.level.level}</strong>
+          </span>
+          <span className="profile-meta-pill">
+            <strong className="tabular">{stats.totalXp.toLocaleString()}</strong> XP
+          </span>
+          <span className="profile-meta-pill">
+            Writing time <strong className="tabular">{formatMinutes(stats.totalSpeakingMinutes)}</strong>
+          </span>
         </div>
 
         {editing && (
@@ -207,21 +239,20 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
         )}
 
         <div className="profile-stats-bar">
-          <ProfileStat label="Total words" value={stats.totalWords.toLocaleString()} />
-          <ProfileStat label="Speaking time" value={formatMinutes(stats.totalSpeakingMinutes)} />
-          <ProfileStat label="Sessions" value={String(stats.sessionCount)} />
-          <ProfileStat label="Day streak" value={String(stats.streak)} />
-          <ProfileStat label="Best streak" value={String(stats.bestStreak)} />
+          <ProfileStat icon="📜" label="Total words" value={stats.totalWords.toLocaleString()} />
+          <ProfileStat icon="🎯" label="Sessions" value={String(stats.sessionCount)} />
+          <ProfileStat icon="🔥" label="Day streak" value={String(stats.streak)} />
+          <ProfileStat icon="🏆" label="Best streak" value={String(stats.bestStreak)} />
         </div>
 
-        <div className="option-row" style={{ maxWidth: 260 }}>
-          <button type="button" className={['filter-chip', tab === 'about' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('about')}>
+        <div className="profile-tabs">
+          <button type="button" className={['profile-tab', tab === 'about' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('about')}>
             About
           </button>
-          <button type="button" className={['filter-chip', tab === 'posts' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('posts')}>
+          <button type="button" className={['profile-tab', tab === 'posts' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('posts')}>
             Posts ({published.length})
           </button>
-          <button type="button" className={['filter-chip', tab === 'saved' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('saved')}>
+          <button type="button" className={['profile-tab', tab === 'saved' ? 'active' : ''].filter(Boolean).join(' ')} onClick={() => setTab('saved')}>
             Saved{saved ? ` (${saved.length})` : ''}
           </button>
         </div>
@@ -288,9 +319,12 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
   )
 }
 
-function ProfileStat({ label, value }: { label: string; value: string }) {
+function ProfileStat({ icon, label, value }: { icon: string; label: string; value: string }) {
   return (
     <div className="profile-stat">
+      <span className="profile-stat-icon" aria-hidden="true">
+        {icon}
+      </span>
       <span className="profile-stat-value tabular">{value}</span>
       <span className="profile-stat-label">{label}</span>
     </div>

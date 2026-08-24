@@ -14,8 +14,8 @@ interface SidebarProps {
 }
 
 const ITEMS: { id: SidebarDest; label: string; icon: (props: { active: boolean }) => ReactElement }[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: HomeIcon },
-  { id: 'archive', label: 'Writings', icon: ArchiveIcon },
+  { id: 'dashboard', label: 'Writings', icon: HomeIcon },
+  { id: 'archive', label: 'Sessions', icon: ArchiveIcon },
   { id: 'discover', label: 'Discover', icon: DiscoverIcon },
   { id: 'leaderboard', label: 'Leaderboard', icon: LeaderboardIcon },
   { id: 'groups', label: 'Groups', icon: GroupsIcon },
@@ -79,24 +79,31 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
 }
 
 function HomeIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
+      <rect x="3.5" y="4" width="10.5" height="13" rx="1" stroke={color} strokeWidth="1.5" />
+      <path d="M6 7.5h5.5M6 10.3h5.5M6 13h3" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
       <path
-        d="M3 9l7-6 7 6v7a1 1 0 01-1 1h-3v-5H7v5H4a1 1 0 01-1-1V9z"
-        stroke={active ? 'var(--accent)' : 'currentColor'}
-        strokeWidth="1.5"
+        d="M12.8 12.5l4-4a1.3 1.3 0 000-1.9l-.4-.4a1.3 1.3 0 00-1.9 0l-4 4-.5 2.8 2.8-.5z"
+        stroke={color}
+        strokeWidth="1.2"
         strokeLinejoin="round"
+        fill={color}
+        fillOpacity="0.12"
       />
     </svg>
   )
 }
 
 function ArchiveIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <rect x="3" y="4" width="14" height="4" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
-      <path d="M4 8v7a1 1 0 001 1h10a1 1 0 001-1V8" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
-      <path d="M8 11h4" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M5.2 4.5a1.4 1.4 0 000 8.5" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <path d="M14.8 15.5a1.4 1.4 0 000-8.5" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
+      <rect x="5.2" y="4.5" width="9.6" height="11" stroke={color} strokeWidth="1.4" />
+      <path d="M7.5 8h5M7.5 10.8h5" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
     </svg>
   )
 }
@@ -105,18 +112,28 @@ function DiscoverIcon({ active }: { active: boolean }) {
   const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="10" r="7" stroke={color} strokeWidth="1.5" />
-      <path d="M13 7l-2 4-4 2 2-4 4-2z" stroke={color} strokeWidth="1.3" strokeLinejoin="round" fill={color} fillOpacity="0.15" />
+      <path
+        d="M10 3.2c-2.9 0-5 2.4-5 5.7 0 2.6 1.1 4.4 2.1 5.4l.4 2 2.5-1.4 2.5 1.4.4-2c1-1 2.1-2.8 2.1-5.4 0-3.3-2.1-5.7-5-5.7z"
+        stroke={color}
+        strokeWidth="1.3"
+        strokeLinejoin="round"
+      />
+      <circle cx="7.9" cy="8.6" r="1.2" stroke={color} strokeWidth="1.1" />
+      <circle cx="12.1" cy="8.6" r="1.2" stroke={color} strokeWidth="1.1" />
+      <path d="M10 9.3l-.7 1.5h1.4L10 9.3z" fill={color} />
+      <path d="M5 5.8c-.9-.5-1.6-1.3-1.8-2.6M15 5.8c.9-.5 1.6-1.3 1.8-2.6" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   )
 }
 
 function LeaderboardIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <rect x="3" y="10" width="4" height="7" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
-      <rect x="8" y="6" width="4" height="11" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
-      <rect x="13" y="3" width="4" height="14" rx="1" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
+      <path d="M10 16.5c-3.6-1-5.6-4.2-5-8.7" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M10 16.5c3.6-1 5.6-4.2 5-8.7" stroke={color} strokeWidth="1.4" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="M5.6 6.6c.6.6 1.6.5 2.1-.3M5.1 8.9c.6.5 1.6.3 2-.4M5.4 11.2c.5.4 1.5.2 1.8-.6" stroke={color} strokeWidth="1" strokeLinecap="round" />
+      <path d="M14.4 6.6c-.6.6-1.6.5-2.1-.3M14.9 8.9c-.6.5-1.6.3-2-.4M14.6 11.2c-.5.4-1.5.2-1.8-.6" stroke={color} strokeWidth="1" strokeLinecap="round" />
     </svg>
   )
 }
@@ -125,19 +142,22 @@ function GroupsIcon({ active }: { active: boolean }) {
   const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <circle cx="7" cy="7" r="2.6" stroke={color} strokeWidth="1.5" />
-      <circle cx="14" cy="8" r="2.1" stroke={color} strokeWidth="1.5" />
-      <path d="M2.5 16c.6-2.8 2.4-4.3 4.5-4.3s3.9 1.5 4.5 4.3" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
-      <path d="M11.5 12.2c1.7.1 3 1.4 3.5 3.8" stroke={color} strokeWidth="1.5" strokeLinecap="round" />
+      <path d="M3 6.2l7-2.7 7 2.7" stroke={color} strokeWidth="1.3" strokeLinejoin="round" />
+      <path d="M3 6.2h14" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M4.8 6.2v8M8 6.2v8M12 6.2v8M15.2 6.2v8" stroke={color} strokeWidth="1.3" strokeLinecap="round" />
+      <path d="M3 16.3h14" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   )
 }
 
 function ProfileIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <circle cx="10" cy="7" r="3.2" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" />
-      <path d="M4 17c1-3.5 4-5 6-5s5 1.5 6 5" stroke={active ? 'var(--accent)' : 'currentColor'} strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="10" cy="5.8" r="2.4" stroke={color} strokeWidth="1.4" />
+      <path d="M6.8 9.8c0-.9.5-1.5 1.2-1.9M13.2 9.8c0-.9-.5-1.5-1.2-1.9" stroke={color} strokeWidth="1.1" strokeLinecap="round" />
+      <path d="M7 9.8h6v6.2H7z" stroke={color} strokeWidth="1.4" strokeLinejoin="round" />
+      <path d="M5.8 16h8.4" stroke={color} strokeWidth="1.4" strokeLinecap="round" />
     </svg>
   )
 }
@@ -158,14 +178,12 @@ function SettingsIcon({ active }: { active: boolean }) {
 }
 
 function AdminIcon({ active }: { active: boolean }) {
+  const color = active ? 'var(--accent)' : 'currentColor'
   return (
     <svg width="19" height="19" viewBox="0 0 20 20" fill="none">
-      <path
-        d="M10 2.5l6 2.2v4.6c0 4-2.6 7-6 8.2-3.4-1.2-6-4.2-6-8.2V4.7l6-2.2z"
-        stroke={active ? 'var(--accent)' : 'currentColor'}
-        strokeWidth="1.5"
-        strokeLinejoin="round"
-      />
+      <circle cx="10" cy="10" r="6.3" stroke={color} strokeWidth="1.5" />
+      <circle cx="10" cy="10" r="2" stroke={color} strokeWidth="1.3" fill="var(--bg-elevated)" />
+      <path d="M10 3.7v2.1M10 14.2v2.1M3.7 10h2.1M14.2 10h2.1" stroke={color} strokeWidth="1.2" strokeLinecap="round" />
     </svg>
   )
 }
