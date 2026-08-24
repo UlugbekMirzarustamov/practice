@@ -31,7 +31,7 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
     <motion.aside
       className={['sidebar', collapsed ? 'collapsed' : ''].filter(Boolean).join(' ')}
       initial={false}
-      animate={{ width: collapsed ? 68 : 208 }}
+      animate={{ width: collapsed ? 64 : 188 }}
       transition={{ type: 'spring', stiffness: 340, damping: 32 }}
     >
       <div className="sidebar-top">

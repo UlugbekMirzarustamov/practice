@@ -126,6 +126,7 @@ export function SessionSetup({ stats, onStart, onStartChallenge }: SessionSetupP
           )
         )}
 
+        <div className="dashboard-form">
         <h1 className="setup-title">
           <TextEffect speedReveal={1.2} speedSegment={0.6}>
             Pick your focus.
@@ -223,6 +224,7 @@ export function SessionSetup({ stats, onStart, onStartChallenge }: SessionSetupP
           <Button variant="primary" block onClick={handleStart} disabled={!canStart}>
             {topicSource === 'custom' ? 'Use this topic' : 'Find my topic'}
           </Button>
+        </div>
         </div>
       </div>
     </motion.div>

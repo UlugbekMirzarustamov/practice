@@ -2327,7 +2327,23 @@ h3 {
 }
 
 .page-inner-wide {
-  max-width: 1120px;
+  max-width: 1480px;
+}
+
+/*
+ * The dashboard's stat cards/rows are meant to stretch across the wide
+ * page-inner-wide container above, but the topic-picker form below them
+ * reads badly at that width (giant search input, sprawled toggle rows) —
+ * so it gets its own narrower, centered wrapper instead of inheriting
+ * the full width.
+ */
+.dashboard-form {
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 .lede {
