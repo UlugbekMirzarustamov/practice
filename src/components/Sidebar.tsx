@@ -37,11 +37,9 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
       <div className="sidebar-top">
         <span className="sidebar-logo">B</span>
         {!collapsed && <span className="sidebar-wordmark">Bema</span>}
-        {!collapsed && (
-          <button type="button" className="sidebar-collapse" onClick={onToggleCollapse} title="Collapse">
-            <ChevronIcon collapsed={collapsed} />
-          </button>
-        )}
+        <button type="button" className="sidebar-collapse" onClick={onToggleCollapse} title={collapsed ? 'Expand' : 'Collapse'}>
+          <ChevronIcon collapsed={collapsed} />
+        </button>
       </div>
 
       <nav className="sidebar-nav">
@@ -78,11 +76,6 @@ export function Sidebar({ active, onNavigate, profile, collapsed, onToggleCollap
 
       <div className="sidebar-bottom">
         <ProfileMenu profile={profile} collapsed={collapsed} onNavigate={onNavigate} theme={theme} onToggleTheme={onToggleTheme} />
-        {collapsed && (
-          <button type="button" className="sidebar-collapse" onClick={onToggleCollapse} title="Expand">
-            <ChevronIcon collapsed={collapsed} />
-          </button>
-        )}
       </div>
     </motion.aside>
   )

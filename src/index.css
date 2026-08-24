@@ -208,6 +208,21 @@ h3 {
   margin-left: auto;
 }
 
+/*
+ * Collapsed: logo (32px) + collapse button (28px) can't sit side by side
+ * in the narrow 64px rail, so the button drops below the logo instead of
+ * relocating to the bottom row — it stays in the same conceptual spot
+ * (next to the brand mark) in both states rather than jumping around.
+ */
+.sidebar.collapsed .sidebar-top {
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar.collapsed .sidebar-top .sidebar-collapse {
+  margin-left: 0;
+}
+
 .sidebar-logo {
   width: 32px;
   height: 32px;
