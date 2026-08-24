@@ -4,6 +4,7 @@ import { useAuth } from '../../lib/auth'
 import { Button } from '../../components/Button'
 import { InteractiveButton } from '../../components/InteractiveButton'
 import { usePageMeta } from '../../lib/usePageMeta'
+import authPhilosopher from '../../assets/auth-philosopher.jpg'
 
 type Mode = 'sign-in' | 'sign-up' | 'forgot'
 
@@ -65,105 +66,120 @@ export function AuthPage() {
 
   return (
     <motion.div
-      className="page auth-page"
+      className="auth-split"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      <div className="page-inner auth-inner">
-        <div className="auth-card">
-          <span className="auth-badge">
-            <SignInIcon />
-          </span>
-          <h1 className="setup-title">
-            {mode === 'sign-in' && 'Welcome back.'}
-            {mode === 'sign-up' && 'Create your account.'}
-            {mode === 'forgot' && 'Reset your password.'}
-          </h1>
-          <p className="lede">
-            {mode === 'forgot'
-              ? "We'll email you a link to set a new password."
-              : 'Your sessions, streak, and XP now sync across every device.'}
-          </p>
+      <div className="auth-form-side">
+        <div className="auth-inner">
+          <div className="auth-card">
+            <span className="auth-badge">
+              <SignInIcon />
+            </span>
+            <h1 className="setup-title">
+              {mode === 'sign-in' && 'Welcome back.'}
+              {mode === 'sign-up' && 'Create your account.'}
+              {mode === 'forgot' && 'Reset your password.'}
+            </h1>
+            <p className="lede">
+              {mode === 'forgot'
+                ? "We'll email you a link to set a new password."
+                : 'Your sessions, streak, and XP now sync across every device.'}
+            </p>
 
-          <form className="auth-form" onSubmit={handleSubmit}>
-          <div className="field">
-            <span className="field-label">Email</span>
-            <input
-              className="search-input"
-              type="email"
-              required
-              autoComplete="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
+            <form className="auth-form" onSubmit={handleSubmit}>
+              <div className="field">
+                <span className="field-label">Email</span>
+                <input
+                  className="search-input"
+                  type="email"
+                  required
+                  autoComplete="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+
+              {mode !== 'forgot' && (
+                <div className="field">
+                  <span className="field-label">Password</span>
+                  <input
+                    className="search-input"
+                    type="password"
+                    required
+                    minLength={6}
+                    autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                  />
+                </div>
+              )}
+
+              {error && <p className="auth-message auth-error">{error}</p>}
+              {info && <p className="auth-message auth-info">{info}</p>}
+
+              <InteractiveButton className="btn btn-primary btn-block" type="submit" disabled={submitting}>
+                {submitting
+                  ? 'Working...'
+                  : mode === 'sign-in'
+                    ? 'Sign in'
+                    : mode === 'sign-up'
+                      ? 'Sign up'
+                      : 'Send reset link'}
+              </InteractiveButton>
+            </form>
+
+            {mode !== 'forgot' && (
+              <>
+                <div className="auth-divider">
+                  <span>or</span>
+                </div>
+                <Button block onClick={handleGoogle}>
+                  <GoogleIcon />
+                  Continue with Google
+                </Button>
+              </>
+            )}
+
+            <div className="auth-links">
+              {mode === 'sign-in' && (
+                <>
+                  <button type="button" className="text-link" onClick={() => switchMode('sign-up')}>
+                    Need an account? Sign up
+                  </button>
+                  <button type="button" className="text-link" onClick={() => switchMode('forgot')}>
+                    Forgot password?
+                  </button>
+                </>
+              )}
+              {mode === 'sign-up' && (
+                <button type="button" className="text-link" onClick={() => switchMode('sign-in')}>
+                  Already have an account? Sign in
+                </button>
+              )}
+              {mode === 'forgot' && (
+                <button type="button" className="text-link" onClick={() => switchMode('sign-in')}>
+                  Back to sign in
+                </button>
+              )}
+            </div>
           </div>
-
-          {mode !== 'forgot' && (
-            <div className="field">
-              <span className="field-label">Password</span>
-              <input
-                className="search-input"
-                type="password"
-                required
-                minLength={6}
-                autoComplete={mode === 'sign-up' ? 'new-password' : 'current-password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
-          )}
-
-          {error && <p className="auth-message auth-error">{error}</p>}
-          {info && <p className="auth-message auth-info">{info}</p>}
-
-          <InteractiveButton className="btn btn-primary btn-block" type="submit" disabled={submitting}>
-            {submitting
-              ? 'Working...'
-              : mode === 'sign-in'
-                ? 'Sign in'
-                : mode === 'sign-up'
-                  ? 'Sign up'
-                  : 'Send reset link'}
-          </InteractiveButton>
-        </form>
-
-        {mode !== 'forgot' && (
-          <>
-            <div className="auth-divider">
-              <span>or</span>
-            </div>
-            <Button block onClick={handleGoogle}>
-              <GoogleIcon />
-              Continue with Google
-            </Button>
-          </>
-        )}
-
-        <div className="auth-links">
-          {mode === 'sign-in' && (
-            <>
-              <button type="button" className="text-link" onClick={() => switchMode('sign-up')}>
-                Need an account? Sign up
-              </button>
-              <button type="button" className="text-link" onClick={() => switchMode('forgot')}>
-                Forgot password?
-              </button>
-            </>
-          )}
-          {mode === 'sign-up' && (
-            <button type="button" className="text-link" onClick={() => switchMode('sign-in')}>
-              Already have an account? Sign in
-            </button>
-          )}
-          {mode === 'forgot' && (
-            <button type="button" className="text-link" onClick={() => switchMode('sign-in')}>
-              Back to sign in
-            </button>
-          )}
         </div>
-        </div>
+      </div>
+
+      <div className="auth-visual-side">
+        <img
+          className="auth-visual-image"
+          src={authPhilosopher}
+          alt="A philosopher in a traveling cloak, arms crossed, looking out toward the Acropolis at dusk"
+        />
+        <div className="auth-visual-scrim" aria-hidden="true" />
+        <blockquote className="auth-visual-quote">
+          <p>&ldquo;The unexamined life is not worth living.&rdquo;</p>
+          <cite>&mdash; Socrates</cite>
+        </blockquote>
       </div>
     </motion.div>
   )
