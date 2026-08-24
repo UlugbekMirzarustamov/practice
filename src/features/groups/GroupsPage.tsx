@@ -73,7 +73,7 @@ export function GroupsPage({ onOpenGroup, pendingJoinMessage }: GroupsPageProps)
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="page-inner" style={{ maxWidth: 800 }}>
+      <div className="page-inner page-inner-wide">
         <h1 className="setup-title">My Groups</h1>
         <p className="lede">Practice groups you belong to. Each has its own leaderboard, scoped to members only.</p>
 

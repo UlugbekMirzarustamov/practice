@@ -81,7 +81,7 @@ export function DiscoverPage({ onOpenProfile, onStartTopic }: DiscoverPageProps)
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      <div className="page-inner" style={{ maxWidth: 840 }}>
+      <div className="page-inner page-inner-wide">
         <h1 className="setup-title">Discover</h1>
         <p className="lede">Published sessions from the Bema community, most recent first.</p>
 

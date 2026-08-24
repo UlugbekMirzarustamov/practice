@@ -124,7 +124,7 @@ export function ProfilePage({ onOpenProfile }: ProfilePageProps) {
 
   return (
     <motion.div className="page" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.35 }}>
-      <div className="page-inner" style={{ maxWidth: 900 }}>
+      <div className="page-inner page-inner-wide">
         <div className="profile-hero">
           <div className="profile-banner" aria-hidden="true" />
           {!editing && (

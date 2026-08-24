@@ -94,7 +94,7 @@ export function SettingsPage({
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35 }}
     >
-      <div className="page-inner" style={{ maxWidth: 760 }}>
+      <div className="page-inner" style={{ maxWidth: 1000 }}>
         <h1 className="setup-title settings-title">
           <SettingsGearIcon />
           Settings

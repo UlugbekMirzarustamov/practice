@@ -47,7 +47,7 @@ export function NotificationsPage({ onOpenProfile, onRead }: NotificationsPagePr
       exit={{ opacity: 0, y: -12 }}
       transition={{ duration: 0.35, ease: 'easeOut' }}
     >
-      <div className="page-inner" style={{ maxWidth: 720 }}>
+      <div className="page-inner page-inner-wide">
         <h1 className="setup-title">Notifications</h1>
         <p className="lede">Follows, likes, and comments on your sessions.</p>
 
